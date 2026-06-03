@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#F5F1EA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Personal Dashboard — Nitipong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light only;
+    --tiger: #FF6B35;
+    --tiger-dark: #E5562C;
+    --ink: #0F0F0F;
+    --ink-soft: #1A1A1A;
+    --pearl: #F5F1EA;
+    --pearl-dark: #ECE6DB;
+    --gray: #6B6B6B;
+    --gray-light: #A8A8A8;
+    --line: rgba(15, 15, 15, 0.08);
+    --success: #2ecc71;
+    --warning: #f39c12;
+    --error: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', 'Space Grotesk', sans-serif;
+    background: var(--pearl); color: var(--ink);
+    min-height: 100vh; padding: 32px 24px;
+    line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .display-font { font-family: 'Space Grotesk', 'Sarabun', sans-serif; letter-spacing: -0.02em; }
+  .container { max-width: 1280px; margin: 0 auto; }
+  
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding-bottom: 32px; margin-bottom: 32px; border-bottom: 1px solid var(--ink);
+  }
+  .header-left h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(48px, 7vw, 88px); font-weight: 700;
+    line-height: 0.95; letter-spacing: -0.04em; color: var(--ink);
+  }
+  .header-left h1 .accent { color: var(--tiger); }
+  .header-left p { margin-top: 12px; font-size: 15px; color: var(--gray); max-width: 480px; }
+  .header-right { text-align: right; font-family: 'Space Grotesk', sans-serif; }
+  .header-right .date { font-size: 13px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gray); margin-bottom: 4px; }
+  .header-right .day { font-size: 24px; font-weight: 600; color: var(--ink); }
+  
+  /* Sync Status Indicator */
+  .sync-bar {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--ink); color: var(--pearl);
+    padding: 12px 20px; margin-bottom: 32px;
+    border-radius: 12px; font-size: 13px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .sync-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gray-light);
+  }
+  .sync-dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
+  .sync-dot.syncing { background: var(--tiger); animation: pulse 1s infinite; }
+  .sync-dot.error { background: var(--error); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .sync-bar .status-text { flex: 1; }
+  .sync-bar button {
+    background: var(--tiger); color: var(--ink);
+    border: none; padding: 6px 14px; border-radius: 100px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    font-family: inherit;
+  }
+  .sync-bar button:hover { background: white; }
+  
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 32px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); padding-bottom: 0;
+  }
+  .tab {
+    padding: 14px 24px; background: transparent; border: none; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 500;
+    color: var(--gray); letter-spacing: 0.02em; position: relative; transition: color 0.2s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--ink); font-weight: 600; }
+  .tab.active::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 2px; background: var(--tiger);
+  }
+  
+  .panel { display: none; animation: fadeIn 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .grid {
+    display: grid; grid-template-columns: repeat(12, 1fr);
+    gap: 16px; margin-bottom: 16px;
+  }
+  .col-4 { grid-column: span 4; }
+  .col-6 { grid-column: span 6; }
+  .col-8 { grid-column: span 8; }
+  .col-12 { grid-column: span 12; }
+  @media (max-width: 900px) {
+    .col-4, .col-6, .col-8 { grid-column: span 12; }
+  }
+  
+  .card {
+    background: white; border: 1px solid var(--line); border-radius: 20px;
+    padding: 28px; transition: all 0.25s ease; position: relative; overflow: hidden;
+  }
+  .card:hover { border-color: var(--ink); transform: translateY(-2px); }
+  .card-dark { background: var(--ink); color: var(--pearl); border-color: var(--ink); }
+  .card-dark:hover { background: var(--ink-soft); }
+  .card-tiger { background: var(--tiger); color: var(--ink); border-color: var(--tiger); }
+  .card-tiger:hover { background: var(--tiger-dark); border-color: var(--tiger-dark); }
+  
+  .card-label {
+    font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.18em; color: var(--gray);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .card-dark .card-label { color: var(--tiger); }
+  .card-tiger .card-label { color: var(--ink); opacity: 0.7; }
+  .card-title { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 16px; }
+  
+  .big-stat { display: flex; align-items: baseline; gap: 12px; margin: 8px 0; }
+  .big-stat-num {
+    font-family: 'Space Grotesk', sans-serif; font-size: 88px;
+    font-weight: 700; line-height: 1; letter-spacing: -0.04em;
+  }
+  .big-stat-label { font-size: 14px; color: var(--gray-light); font-weight: 500; }
+  .card-dark .big-stat-label { color: var(--gray-light); }
+  
+  .progress-bar { background: rgba(15, 15, 15, 0.08); height: 4px; overflow: hidden; margin: 12px 0; }
+  .card-dark .progress-bar { background: rgba(255, 255, 255, 0.1); }
+  .progress-fill { height: 100%; background: var(--tiger); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+  
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px;
+  }
+  .card-dark .stat-row { border-color: rgba(255, 255, 255, 0.1); }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row .label { color: var(--gray); }
+  .card-dark .stat-row .label { color: var(--gray-light); }
+  .stat-row .value { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; }
+  .stat-row .value.accent { color: var(--tiger); }
+  
+  .checkbox-item {
+    display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+    background: var(--pearl); border: 1px solid transparent; border-radius: 12px;
+    margin-bottom: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px;
+  }
+  .checkbox-item:hover { border-color: var(--ink); background: white; }
+  .checkbox-item.done {
+    background: var(--ink); color: var(--pearl);
+    text-decoration: line-through; text-decoration-color: var(--tiger); text-decoration-thickness: 2px;
+  }
+  .checkbox-item input { width: 20px; height: 20px; cursor: pointer; accent-color: var(--tiger); }
+  
+  input[type="text"], input[type="number"], input[type="url"], textarea, select {
+    width: 100%; padding: 14px 16px; border: 1px solid var(--line);
+    border-radius: 10px; font-size: 14px; font-family: inherit;
+    margin-bottom: 10px; background: var(--pearl); transition: all 0.2s;
+  }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--ink); background: white; }
+  
+  button.btn {
+    font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600;
+    padding: 14px 28px; border: none; border-radius: 100px; cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.01em;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  button.btn-primary { background: var(--ink); color: var(--pearl); }
+  button.btn-primary:hover { background: var(--tiger); color: var(--ink); }
+  button.btn-tiger { background: var(--tiger); color: var(--ink); }
+  button.btn-tiger:hover { background: var(--ink); color: var(--pearl); }
+  button.btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  button.btn-outline:hover { background: var(--ink); color: var(--pearl); }
+  button.btn-danger { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  button.btn-danger:hover { background: #c0392b; color: white; border-color: #c0392b; }
+  
+  .highlight-block {
+    background: var(--tiger); color: var(--ink); padding: 32px;
+    border-radius: 20px; margin-bottom: 16px; position: relative;
+  }
+  .highlight-block .quote-text {
+    font-family: 'Space Grotesk', sans-serif; font-size: 24px;
+    font-weight: 500; line-height: 1.3; letter-spacing: -0.02em;
+  }
+  .highlight-block::before {
+    content: '"'; font-family: 'Space Grotesk', sans-serif;
+    font-size: 120px; font-weight: 700; line-height: 1;
+    position: absolute; top: 16px; right: 28px; opacity: 0.3;
+  }
+  
+  .log-entry {
+    background: var(--pearl); padding: 16px 18px; border-radius: 12px;
+    margin-bottom: 8px; font-size: 14px; border-left: 3px solid var(--tiger);
+  }
+  .log-entry .date {
+    font-family: 'Space Grotesk', sans-serif; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray); margin-bottom: 6px;
+  }
+  
+  .badge {
+    display: inline-block; padding: 4px 10px; border-radius: 100px;
+    font-family: 'Space Grotesk', sans-serif; font-size: 10px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-left: 8px;
+  }
+  .badge-tiger { background: var(--tiger); color: var(--ink); }
+  
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-light); font-size: 14px; }
+  
+  .section-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 20px; padding-top: 8px;
+  }
+  .section-header h2 {
+    font-family: 'Space Grotesk', sans-serif; font-size: 32px;
+    font-weight: 700; letter-spacing: -0.03em;
+  }
+  .section-header .meta { font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.15em; }
+  
+  label.field-label {
+    display: block; font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.15em; color: var(--gray); margin-bottom: 8px; margin-top: 12px;
+  }
+  
+  .phase-indicator {
+    background: var(--ink); color: var(--pearl); padding: 24px 28px;
+    border-radius: 16px; font-size: 15px; line-height: 1.5;
+    border-left: 4px solid var(--tiger);
+  }
+  
+  .sheet-link-box {
+    background: var(--ink); color: var(--pearl);
+    padding: 20px; border-radius: 12px; margin-top: 16px;
+    word-break: break-all; font-size: 12px; font-family: monospace;
+  }
+  .sheet-link-box strong { color: var(--tiger); display: block; margin-bottom: 8px; font-family: 'Space Grotesk'; font-size: 14px; }
+  
+  @media (max-width: 600px) {
+    body { padding: 20px 16px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .header-right { text-align: left; }
+    .card { padding: 20px; }
+    .big-stat-num { font-size: 64px; }
+    .section-header h2 { font-size: 24px; }
+    .tab { padding: 12px 16px; font-size: 13px; }
+  }
+  
+  /* บังคับ light theme บนมือถือ dark mode */
+  html { color-scheme: light only; }
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: light only; }
+    body { background: #F5F1EA !important; color: #0F0F0F !important; }
+    .card { background: #ffffff !important; color: #0F0F0F !important; }
+    .card-dark { background: #0F0F0F !important; color: #F5F1EA !important; }
+    .card-tiger { background: #FF6B35 !important; color: #0F0F0F !important; }
+    .checkbox-item { background: #F5F1EA !important; color: #0F0F0F !important; }
+    .checkbox-item.done { background: #0F0F0F !important; color: #F5F1EA !important; }
+    input, textarea, select { 
+      background: #F5F1EA !important; color: #0F0F0F !important;
+      -webkit-text-fill-color: #0F0F0F !important;
+    }
+    .log-entry { background: #F5F1EA !important; color: #0F0F0F !important; }
+    .sync-bar { background: #0F0F0F !important; color: #F5F1EA !important; }
+    .header-left h1, .header-right .day { color: #0F0F0F !important; }
+  }
+  
+  /* Date Picker Bar */
+  .date-bar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: white; border: 1px solid var(--ink);
+    padding: 16px 20px; border-radius: 16px; margin-bottom: 24px;
+  }
+  .date-bar .date-label {
+    font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.15em; color: var(--gray);
+  }
+  .date-bar input[type="date"] {
+    width: auto; margin: 0; padding: 10px 14px; background: var(--pearl);
+    border: 1px solid var(--line); font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600; cursor: pointer;
+  }
+  @media (prefers-color-scheme: dark) {
+    .date-bar { background: #ffffff !important; }
+    .date-bar input[type="date"] { background: #F5F1EA !important; color: #0F0F0F !important; -webkit-text-fill-color: #0F0F0F !important; }
+  }
+  .date-bar .editing-badge {
+    background: var(--tiger); color: var(--ink); padding: 4px 12px;
+    border-radius: 100px; font-size: 11px; font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .date-bar .today-btn {
+    background: var(--ink); color: var(--pearl); border: none;
+    padding: 8px 16px; border-radius: 100px; font-size: 12px;
+    font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+  }
+  .date-bar .pull-btn {
+    background: var(--tiger); color: var(--ink); border: none;
+    padding: 8px 16px; border-radius: 100px; font-size: 12px;
+    font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="header-left">
+      <h1>Daily<br><span class="accent">Discipline.</span></h1>
+      <p>ระบบติดตามการพัฒนาตนเอง — ผอ.นิติพงษ์<br>เส้นทางสู่วิทยฐานะเชี่ยวชาญ + 10K/40 นาที</p>
+    </div>
+    <div class="header-right">
+      <div class="date" id="todayDate"></div>
+      <div class="day display-font" id="todayDay"></div>
+    </div>
+  </header>
+
+  <!-- SYNC STATUS BAR -->
+  <div class="sync-bar">
+    <div class="sync-dot" id="syncDot"></div>
+    <div class="status-text" id="syncStatus">ยังไม่ได้เชื่อมต่อ Google Sheets — ไปที่ Settings เพื่อตั้งค่า</div>
+    <button onclick="manualSync()" id="syncBtn">Sync Now</button>
+  </div>
+
+  <!-- DATE PICKER BAR -->
+  <div class="date-bar">
+    <span class="date-label">📅 วันที่</span>
+    <input type="date" id="datePicker" onchange="onDateChange()">
+    <button class="today-btn" onclick="goToday()">วันนี้</button>
+    <button class="pull-btn" onclick="pullFromSheet()">📥 ดึงข้อมูลจาก Sheet</button>
+    <span class="editing-badge" id="editingBadge" style="display:none">กำลังแก้ไข</span>
+    <span id="dateLoadStatus" style="font-size:13px; color:var(--gray)"></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-panel="home">Overview</button>
+    <button class="tab" data-panel="research">Research</button>
+    <button class="tab" data-panel="habits">Habits</button>
+    <button class="tab" data-panel="running">Running</button>
+    <button class="tab" data-panel="reflect">Journal</button>
+    <button class="tab" data-panel="settings">Settings</button>
+  </div>
+
+  <!-- HOME -->
+  <div class="panel active" id="panel-home">
+    <div class="grid">
+      <div class="card card-tiger col-4">
+        <div class="card-label">⚡ Current Streak</div>
+        <div class="big-stat"><span class="big-stat-num display-font" id="streakNumber">0</span></div>
+        <div style="font-size: 14px; margin-top: 8px;">วันต่อเนื่องที่ check-in</div>
+      </div>
+      <div class="card card-dark col-4">
+        <div class="card-label">📚 Research</div>
+        <div class="big-stat"><span class="big-stat-num display-font" id="researchOverallPct">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="researchOverallBar" style="width:0%"></div></div>
+        <div class="stat-row"><span class="label">บทที่กำลังทำ</span><span class="value" id="currentChapter">บทที่ 1</span></div>
+      </div>
+      <div class="card col-4">
+        <div class="card-label">✓ Today</div>
+        <div class="big-stat"><span class="big-stat-num display-font" id="todayDone">0/5</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="todayBar" style="width:0%"></div></div>
+        <div class="stat-row"><span class="label">เวลาทำวิจัยวันนี้</span><span class="value accent" id="todayResearchTime">0 นาที</span></div>
+      </div>
+      <div class="card col-8">
+        <div class="card-label">🏃 Running Status</div>
+        <div class="card-title">เป้าหมาย: 10K ใน 40 นาที</div>
+        <div class="stat-row"><span class="label">วิ่งล่าสุด</span><span class="value" id="lastRunDate">-</span></div>
+        <div class="stat-row"><span class="label">Pace ล่าสุด</span><span class="value accent" id="lastPace">-</span></div>
+        <div class="stat-row"><span class="label">ครั้งที่วิ่งสะสม</span><span class="value" id="totalRuns">0</span></div>
+      </div>
+      <div class="card col-4">
+        <div class="card-label">💡 This Week</div>
+        <div class="card-title">โฟกัสของสัปดาห์</div>
+        <textarea id="weeklyFocus" rows="4" placeholder="สัปดาห์นี้จะบรรลุอะไร?"></textarea>
+        <button class="btn btn-primary" onclick="saveWeeklyFocus()">บันทึก</button>
+      </div>
+    </div>
+    <div class="highlight-block">
+      <div class="quote-text">Discipline equals freedom.<br>คุณไม่ต้องรอ motivation — สิ่งที่ต้องมีคือระบบที่ดี</div>
+    </div>
+  </div>
+
+  <!-- RESEARCH -->
+  <div class="panel" id="panel-research">
+    <div class="section-header">
+      <h2>Research<br><span style="color: var(--tiger);">Roadmap.</span></h2>
+      <span class="meta">วิทยฐานะ เชี่ยวชาญ</span>
+    </div>
+    <div class="grid">
+      <div class="card col-12">
+        <div class="card-label">หัวข้องานวิจัย</div>
+        <input type="text" id="researchTopic" placeholder="ใส่หัวข้องานวิจัยของคุณ">
+        <button class="btn btn-primary" onclick="saveResearch()">บันทึกหัวข้อ</button>
+      </div>
+      <div class="card col-4">
+        <div class="card-label">บทที่ 01</div>
+        <div class="card-title">บทนำ</div>
+        <div class="checkbox-item" data-key="ch1_problem"><input type="checkbox"> ความเป็นมาและความสำคัญ</div>
+        <div class="checkbox-item" data-key="ch1_objectives"><input type="checkbox"> วัตถุประสงค์ของการวิจัย</div>
+        <div class="checkbox-item" data-key="ch1_questions"><input type="checkbox"> คำถามวิจัย</div>
+        <div class="checkbox-item" data-key="ch1_hypothesis"><input type="checkbox"> สมมติฐานการวิจัย</div>
+        <div class="checkbox-item" data-key="ch1_scope"><input type="checkbox"> ขอบเขตการวิจัย</div>
+        <div class="checkbox-item" data-key="ch1_definitions"><input type="checkbox"> นิยามศัพท์เฉพาะ</div>
+        <div class="checkbox-item" data-key="ch1_benefits"><input type="checkbox"> ประโยชน์ที่คาดว่าจะได้รับ</div>
+      </div>
+      <div class="card col-4">
+        <div class="card-label">บทที่ 02</div>
+        <div class="card-title">ทบทวนวรรณกรรม</div>
+        <div class="checkbox-item" data-key="ch2_concept"><input type="checkbox"> แนวคิดทฤษฎีหลัก</div>
+        <div class="checkbox-item" data-key="ch2_related"><input type="checkbox"> งานวิจัย (ในประเทศ)</div>
+        <div class="checkbox-item" data-key="ch2_intl"><input type="checkbox"> งานวิจัย (ต่างประเทศ)</div>
+        <div class="checkbox-item" data-key="ch2_framework"><input type="checkbox"> กรอบแนวคิดการวิจัย</div>
+      </div>
+      <div class="card col-4">
+        <div class="card-label">บทที่ 03</div>
+        <div class="card-title">ระเบียบวิธีวิจัย</div>
+        <div class="checkbox-item" data-key="ch3_design"><input type="checkbox"> รูปแบบการวิจัย</div>
+        <div class="checkbox-item" data-key="ch3_population"><input type="checkbox"> ประชากรและกลุ่มตัวอย่าง</div>
+        <div class="checkbox-item" data-key="ch3_instruments"><input type="checkbox"> เครื่องมือที่ใช้</div>
+        <div class="checkbox-item" data-key="ch3_collect"><input type="checkbox"> การเก็บรวบรวมข้อมูล</div>
+        <div class="checkbox-item" data-key="ch3_analysis"><input type="checkbox"> การวิเคราะห์ข้อมูล</div>
+      </div>
+      <div class="card col-6">
+        <div class="card-label">⏱️ Time Log</div>
+        <div class="card-title">บันทึกเวลาทำวิจัย</div>
+        <label class="field-label">จำนวนนาที</label>
+        <input type="number" id="researchMinutes" placeholder="30" min="0">
+        <label class="field-label">บันทึก (สั้นๆ)</label>
+        <input type="text" id="researchNote" placeholder="ทำอะไรไป">
+        <button class="btn btn-tiger" onclick="logResearch()">บันทึก Session</button>
+        <div id="researchLog" style="margin-top:20px"></div>
+      </div>
+      <div class="card col-6">
+        <div class="card-label">📄 Papers Read</div>
+        <div class="card-title">บันทึก Papers ที่อ่าน</div>
+        <label class="field-label">ชื่อ paper / ผู้วิจัย</label>
+        <input type="text" id="paperTitle" placeholder="ชื่อ paper">
+        <label class="field-label">รอบการอ่าน</label>
+        <select id="paperRound">
+          <option value="scan">รอบที่ 1: Scan (5-10 นาที)</option>
+          <option value="read">รอบที่ 2: Read (20-30 นาที)</option>
+          <option value="deep">รอบที่ 3: Deep Read (45+ นาที)</option>
+        </select>
+        <label class="field-label">ประเด็นสำคัญ</label>
+        <textarea id="paperNote" rows="2" placeholder="key insights"></textarea>
+        <button class="btn btn-tiger" onclick="logPaper()">บันทึก Paper</button>
+        <div id="paperLog" style="margin-top:20px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="panel" id="panel-habits">
+    <div class="section-header">
+      <h2>Daily<br><span style="color: var(--tiger);">Habits.</span></h2>
+      <span class="meta">5 commitments</span>
+    </div>
+    <div class="grid">
+      <div class="card col-8">
+        <div class="card-label">วันนี้</div>
+        <div class="card-title">ทำอะไรไปแล้วบ้าง</div>
+        <div class="checkbox-item" data-habit="meditation"><input type="checkbox"> 🧘 สมาธิ 10 นาที (เช้า)</div>
+        <div class="checkbox-item" data-habit="reading"><input type="checkbox"> 📖 อ่านหนังสือ 20 นาที</div>
+        <div class="checkbox-item" data-habit="english"><input type="checkbox"> 🌍 ฝึกภาษาอังกฤษ</div>
+        <div class="checkbox-item" data-habit="exercise"><input type="checkbox"> 🏃 ออกกำลังกาย</div>
+        <div class="checkbox-item" data-habit="research"><input type="checkbox"> 📚 ทำวิจัยอย่างน้อย 30 นาที <span class="badge badge-tiger">Priority</span></div>
+      </div>
+      <div class="card card-dark col-4">
+        <div class="card-label">📊 Last 7 Days</div>
+        <div class="card-title">ความถี่</div>
+        <div id="weeklyStats" style="margin-top: 16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RUNNING -->
+  <div class="panel" id="panel-running">
+    <div class="section-header">
+      <h2>Running<br><span style="color: var(--tiger);">10K / 40min.</span></h2>
+      <span class="meta">post-surgery comeback</span>
+    </div>
+    <div class="grid">
+      <div class="card col-6">
+        <div class="card-label">📝 Log Run</div>
+        <div class="card-title">บันทึกการวิ่ง</div>
+        <p style="font-size:13px; color:var(--gray); margin-bottom:16px">หลังผ่าตัดข้อเท้า ต.ค. 68 — ค่อยๆ ไป เป้าหมาย 5-6 เดือน</p>
+        <label class="field-label">ระยะทาง (กม.)</label>
+        <input type="number" id="runDistance" placeholder="5.0" step="0.1">
+        <label class="field-label">Pace</label>
+        <input type="text" id="runPace" placeholder="5:30">
+        <label class="field-label">ระยะเวลา (นาที)</label>
+        <input type="number" id="runMinutes" placeholder="30">
+        <label class="field-label">ความรู้สึก / อาการข้อเท้า</label>
+        <textarea id="runNote" rows="2"></textarea>
+        <button class="btn btn-tiger" onclick="logRun()">บันทึก Run</button>
+      </div>
+      <div class="card col-6">
+        <div class="card-label">📅 History</div>
+        <div class="card-title">ประวัติการวิ่ง</div>
+        <div id="runHistory" style="margin-top: 16px;"></div>
+      </div>
+      <div class="col-12">
+        <div class="phase-indicator" id="currentPhase">ลองบันทึกการวิ่งสัก 2-3 ครั้ง</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFLECT -->
+  <div class="panel" id="panel-reflect">
+    <div class="section-header">
+      <h2>Daily<br><span style="color: var(--tiger);">Journal.</span></h2>
+      <span class="meta">3 questions</span>
+    </div>
+    <div class="grid">
+      <div class="card col-6">
+        <div class="card-label">✍️ Today's Reflection</div>
+        <label class="field-label">✨ วันนี้สำเร็จอะไร (Win)</label>
+        <textarea id="reflectWin" rows="2"></textarea>
+        <label class="field-label">🌧️ อะไรท้าทาย (Challenge)</label>
+        <textarea id="reflectChallenge" rows="2"></textarea>
+        <label class="field-label">🎯 พรุ่งนี้จะปรับอะไร (Next)</label>
+        <textarea id="reflectNext" rows="2"></textarea>
+        <button class="btn btn-primary" onclick="saveReflection()">บันทึก Reflection</button>
+      </div>
+      <div class="card col-6">
+        <div class="card-label">📔 Past Entries</div>
+        <div class="card-title">บันทึกย้อนหลัง</div>
+        <div id="reflectionHistory" style="margin-top:16px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="panel" id="panel-settings">
+    <div class="section-header">
+      <h2>System<br><span style="color: var(--tiger);">Settings.</span></h2>
+      <span class="meta">sync & backup</span>
+    </div>
+    <div class="grid">
+      <div class="card col-12 card-tiger">
+        <div class="card-label">🔗 Google Sheets Sync (v2 — Read + Write)</div>
+        <div class="card-title">ตั้งค่าการ sync 2 ทาง</div>
+        <div style="background:rgba(0,0,0,0.12); padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; line-height:1.5">
+          ⚠️ <strong>ต้องใช้ Apps Script v2</strong> (ไฟล์ google_apps_script_v2.gs)<br>
+          ⚠️ ต้อง <strong>Re-deploy แบบ New version</strong> หลังเปลี่ยน code<br>
+          ⚠️ <strong>เปิดผ่าน GitHub Pages</strong> (artifact ใช้ไม่ได้)
+        </div>
+        <label class="field-label" style="color:var(--ink)">Web App URL</label>
+        <input type="url" id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec" style="background:white">
+        <button class="btn btn-primary" onclick="saveApiUrl()">เชื่อมต่อ</button>
+        <button class="btn btn-outline" onclick="testConnection()" style="margin-left:8px; background:white">ทดสอบ อ่าน+เขียน</button>
+        <button class="btn btn-outline" onclick="loadAllFromSheet()" style="margin-left:8px; background:white">📥 โหลดทั้งหมดจาก Sheet</button>
+        <div id="connectionStatus" style="margin-top:12px; font-size:13px"></div>
+      </div>
+      
+      <div class="card col-6">
+        <div class="card-label">💾 Local Backup</div>
+        <div class="card-title">Export/Import ข้อมูล</div>
+        <p style="font-size:13px; color:var(--gray); margin-bottom:16px">
+          แม้จะ sync กับ Sheets แล้ว ก็ควร export เก็บไว้สำรอง
+        </p>
+        <button class="btn btn-primary" onclick="exportData()">📥 Export JSON</button>
+        <label class="field-label" style="margin-top: 20px">Import กลับ</label>
+        <input type="file" id="importFile" accept=".json" style="padding:12px">
+        <button class="btn btn-outline" onclick="importData()">Import</button>
+      </div>
+      
+      <div class="card card-dark col-6">
+        <div class="card-label">🔄 Full Sync</div>
+        <div class="card-title">Sync ข้อมูลทั้งหมดขึ้น Sheets</div>
+        <p style="font-size:13px; color:var(--gray-light); margin-bottom:16px">
+          ใช้เมื่อ:<br>
+          • ตั้งค่า Sheets ครั้งแรก<br>
+          • ย้ายเครื่องใหม่<br>
+          • ข้อมูลใน Sheets ไม่ครบ
+        </p>
+        <button class="btn btn-tiger" onclick="syncAllData()">🔄 Sync ทั้งหมด</button>
+        <div id="fullSyncStatus" style="margin-top:12px; font-size:13px"></div>
+      </div>
+      
+      <div class="card col-12" style="border-color: var(--ink);">
+        <div class="card-label">⚠️ Danger Zone</div>
+        <div class="card-title">Reset ข้อมูลในเครื่อง</div>
+        <p style="font-size:13px; color:var(--gray); margin: 12px 0 20px">
+          ลบข้อมูลใน localStorage ของเครื่องนี้ (ไม่กระทบข้อมูลใน Sheets)
+        </p>
+        <button class="btn btn-danger" onclick="resetData()">🗑️ Reset Local</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const today = new Date();
+  document.getElementById('todayDate').textContent = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+  document.getElementById('todayDay').textContent = today.toLocaleDateString('th-TH', { weekday: 'long' });
+  const realTodayKey = today.toISOString().split('T')[0];
+  
+  // selectedDate = วันที่กำลังดู/แก้ไข (เปลี่ยนได้ผ่าน date picker)
+  let todayKey = realTodayKey;
+  
+  // ตั้งค่า date picker เริ่มต้น = วันนี้
+  document.getElementById('datePicker').value = realTodayKey;
+  document.getElementById('datePicker').max = realTodayKey; // ห้ามเลือกอนาคต
+  
+  function onDateChange() {
+    todayKey = document.getElementById('datePicker').value;
+    const isToday = (todayKey === realTodayKey);
+    document.getElementById('editingBadge').style.display = isToday ? 'none' : 'inline-block';
+    // โหลดข้อมูลของวันที่เลือกจาก localStorage
+    reloadAllForDate();
+    // ถ้าเชื่อม Sheet แล้ว → ดึงจาก Sheet ด้วย
+    if (getApiUrl()) {
+      pullFromSheet();
+    }
+  }
+  
+  function goToday() {
+    document.getElementById('datePicker').value = realTodayKey;
+    onDateChange();
+  }
+  
+  // โหลดข้อมูลทุก section ใหม่ตาม todayKey ปัจจุบัน
+  function reloadAllForDate() {
+    // Habits — reset checkboxes ตามวันที่เลือก
+    const habitData = getStore('habits_' + todayKey, {});
+    document.querySelectorAll('[data-habit]').forEach(item => {
+      const h = item.dataset.habit;
+      const cb = item.querySelector('input');
+      cb.checked = !!habitData[h];
+      if (cb.checked) item.classList.add('done'); else item.classList.remove('done');
+    });
+    updateHabitsSummary();
+    
+    // Research/Reflection ของวันนั้น → เติมในฟอร์ม (ถ้ามี)
+    loadDayIntoForms();
+    
+    updateTodayResearchTime();
+  }
+  
+  // เติมข้อมูลของวันที่เลือกลงในฟอร์ม (เพื่อแก้ไข)
+  function loadDayIntoForms() {
+    // Research (วันนั้น)
+    const researchLog = getStore('research_log', []);
+    const todayResearch = researchLog.find(e => e.date === todayKey);
+    if (todayResearch) {
+      document.getElementById('researchMinutes').value = todayResearch.minutes || '';
+      document.getElementById('researchNote').value = todayResearch.note || '';
+    } else {
+      document.getElementById('researchMinutes').value = '';
+      document.getElementById('researchNote').value = '';
+    }
+    
+    // Reflection (วันนั้น)
+    const reflLog = getStore('reflection_log', []);
+    const todayRefl = reflLog.find(e => e.date === todayKey);
+    if (todayRefl) {
+      document.getElementById('reflectWin').value = todayRefl.win || '';
+      document.getElementById('reflectChallenge').value = todayRefl.challenge || '';
+      document.getElementById('reflectNext').value = todayRefl.next || '';
+    } else {
+      document.getElementById('reflectWin').value = '';
+      document.getElementById('reflectChallenge').value = '';
+      document.getElementById('reflectNext').value = '';
+    }
+    
+    // Run (วันนั้น)
+    const runLog = getStore('run_log', []);
+    const todayRun = runLog.find(e => e.date === todayKey);
+    if (todayRun) {
+      document.getElementById('runDistance').value = todayRun.distance || '';
+      document.getElementById('runPace').value = todayRun.pace || '';
+      document.getElementById('runMinutes').value = todayRun.minutes || '';
+      document.getElementById('runNote').value = todayRun.note || '';
+    } else {
+      ['runDistance','runPace','runMinutes','runNote'].forEach(id => document.getElementById(id).value = '');
+    }
+  }
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    });
+  });
+
+  const PREFIX = 'nitipong_dashboard_';
+  function getStore(key, def = null) {
+    try { const v = localStorage.getItem(PREFIX + key); return v ? JSON.parse(v) : def; }
+    catch { return def; }
+  }
+  function setStore(key, val) {
+    try { localStorage.setItem(PREFIX + key, JSON.stringify(val)); return true; }
+    catch (e) { alert('บันทึกไม่ได้: ' + e.message); return false; }
+  }
+
+  // ============ GOOGLE SHEETS SYNC ============
+  function getApiUrl() { return getStore('api_url', ''); }
+  function setSyncStatus(state, text) {
+    const dot = document.getElementById('syncDot');
+    const status = document.getElementById('syncStatus');
+    dot.className = 'sync-dot ' + state;
+    status.textContent = text;
+  }
+  
+  async function sendToSheets(type, payload) {
+    const url = getApiUrl();
+    if (!url) return { success: false, skipped: true };
+    
+    setSyncStatus('syncing', 'กำลัง sync...');
+    try {
+      // ใช้ text/plain เพื่อหลีกเลี่ยง CORS preflight
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ type, payload }),
+        redirect: 'follow'
+      });
+      const result = await res.json();
+      if (result.success) {
+        setSyncStatus('connected', '✓ Synced · ' + new Date().toLocaleTimeString('th-TH'));
+      } else {
+        setSyncStatus('error', '⚠️ ' + (result.error || 'sync ไม่สำเร็จ'));
+      }
+      return result;
+    } catch (e) {
+      setSyncStatus('error', '⚠️ Sync error: ' + e.message);
+      // เก็บ queue retry
+      const failed = getStore('failed_sync', []);
+      failed.push({ type, payload, time: new Date().toISOString() });
+      setStore('failed_sync', failed.slice(-50));
+      return { success: false, error: e.message };
+    }
+  }
+  
+  // อ่านข้อมูลจาก Sheet ผ่าน JSONP (ข้าม CORS)
+  function readFromSheetJSONP(action, params = {}) {
+    return new Promise((resolve, reject) => {
+      const url = getApiUrl();
+      if (!url) { reject(new Error('ยังไม่ได้ตั้งค่า URL')); return; }
+      
+      const callbackName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+      const timeout = setTimeout(() => {
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+        reject(new Error('Timeout — Sheet ไม่ตอบใน 15 วิ'));
+      }, 15000);
+      
+      window[callbackName] = (data) => {
+        clearTimeout(timeout);
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+        resolve(data);
+      };
+      
+      const queryParams = new URLSearchParams({ action, callback: callbackName, ...params });
+      const script = document.createElement('script');
+      script.src = url + '?' + queryParams.toString();
+      script.onerror = () => {
+        clearTimeout(timeout);
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+        reject(new Error('โหลดไม่สำเร็จ — เช็ค URL / deployment'));
+      };
+      document.body.appendChild(script);
+    });
+  }
+  
+  // ดึงข้อมูลของวันที่เลือกจาก Sheet มาแสดง
+  async function pullFromSheet() {
+    const url = getApiUrl();
+    if (!url) { 
+      document.getElementById('dateLoadStatus').textContent = '⚠️ ยังไม่เชื่อม Sheet';
+      return; 
+    }
+    
+    document.getElementById('dateLoadStatus').textContent = '⏳ กำลังดึงข้อมูล ' + todayKey + '...';
+    setSyncStatus('syncing', 'กำลังดึงข้อมูลจาก Sheet...');
+    
+    try {
+      const data = await readFromSheetJSONP('getDay', { date: todayKey });
+      
+      if (!data.success) {
+        document.getElementById('dateLoadStatus').textContent = '⚠️ ' + (data.error || 'ไม่สำเร็จ');
+        setSyncStatus('error', '⚠️ ดึงข้อมูลไม่สำเร็จ');
+        return;
+      }
+      
+      // เขียนข้อมูลจาก Sheet ลง localStorage (overwrite วันนั้น)
+      if (data.habits && Object.keys(data.habits).length > 0) {
+        setStore('habits_' + todayKey, data.habits);
+      }
+      
+      if (data.research) {
+        const log = getStore('research_log', []).filter(e => e.date !== todayKey);
+        log.unshift({ date: todayKey, minutes: data.research.minutes, note: data.research.note });
+        setStore('research_log', log);
+      }
+      
+      if (data.runs) {
+        const log = getStore('run_log', []).filter(e => e.date !== todayKey);
+        log.unshift({ date: todayKey, distance: data.runs.distance, pace: data.runs.pace, minutes: data.runs.minutes, note: data.runs.note });
+        setStore('run_log', log);
+      }
+      
+      if (data.reflection) {
+        const log = getStore('reflection_log', []).filter(e => e.date !== todayKey);
+        log.unshift({ date: todayKey, win: data.reflection.win, challenge: data.reflection.challenge, next: data.reflection.next });
+        setStore('reflection_log', log);
+      }
+      
+      if (data.papers && data.papers.length > 0) {
+        const log = getStore('paper_log', []).filter(e => e.date !== todayKey);
+        data.papers.forEach(p => log.unshift({ date: todayKey, title: p.title, round: p.round, note: p.note }));
+        setStore('paper_log', log);
+      }
+      
+      // refresh UI ทั้งหมด
+      reloadAllForDate();
+      renderResearchLog();
+      renderPaperLog();
+      renderRunHistory();
+      updateRunStats();
+      renderReflections();
+      updateStreak();
+      
+      const found = [];
+      if (data.habits && Object.keys(data.habits).length) found.push('habits');
+      if (data.research) found.push('research');
+      if (data.runs) found.push('run');
+      if (data.reflection) found.push('reflection');
+      if (data.papers && data.papers.length) found.push(data.papers.length + ' papers');
+      
+      document.getElementById('dateLoadStatus').textContent = 
+        found.length ? '✓ ดึงแล้ว: ' + found.join(', ') : '○ วันนี้ยังไม่มีข้อมูลใน Sheet';
+      setSyncStatus('connected', '✓ ดึงข้อมูล ' + todayKey + ' แล้ว');
+      
+    } catch (e) {
+      document.getElementById('dateLoadStatus').textContent = '⚠️ ' + e.message;
+      setSyncStatus('error', '⚠️ ' + e.message);
+    }
+  }
+  
+  function saveApiUrl() {
+    const url = document.getElementById('apiUrl').value.trim();
+    if (!url.startsWith('https://script.google.com/')) {
+      alert('URL ไม่ถูกต้อง — ต้องเริ่มด้วย https://script.google.com/');
+      return;
+    }
+    setStore('api_url', url);
+    setSyncStatus('connected', '✓ เชื่อมต่อแล้ว — ลองทดสอบเพื่อยืนยัน');
+    document.getElementById('connectionStatus').innerHTML = '<span style="color:var(--ink); font-weight:600">✓ บันทึก URL แล้ว</span>';
+  }
+  
+  async function testConnection() {
+    const url = getApiUrl();
+    if (!url) { alert('ใส่ URL ก่อน'); return; }
+    
+    document.getElementById('connectionStatus').innerHTML = '⏳ กำลังทดสอบ (อ่าน + เขียน)...';
+    
+    // Test 1: อ่าน (GET via JSONP)
+    try {
+      const status = await readFromSheetJSONP('status');
+      if (status && status.status === 'ok') {
+        document.getElementById('connectionStatus').innerHTML = 
+          '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)">' +
+          '<strong style="color:var(--success)">✓ อ่านข้อมูลได้</strong> (API v2 ' + (status.timestamp ? 'online' : '') + ')<br>' +
+          '⏳ กำลังทดสอบการเขียน...</div>';
+      }
+    } catch (e) {
+      document.getElementById('connectionStatus').innerHTML = 
+        '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)">' +
+        '<strong style="color:var(--error)">⚠️ อ่านไม่ได้: ' + e.message + '</strong><br><br>' +
+        'เช็ค:<br>' +
+        '• ใช้ Apps Script <strong>v2</strong> แล้ว (มี doGet)<br>' +
+        '• Re-deploy แบบ <strong>New version</strong><br>' +
+        '• URL ลงท้าย /exec</div>';
+      return;
+    }
+    
+    // Test 2: เขียน (POST)
+    const writeResult = await sendToSheets('reflection', {
+      date: realTodayKey,
+      win: '[TEST] ทดสอบจาก Dashboard v6',
+      challenge: '',
+      next: 'ลบ row นี้ได้'
+    });
+    
+    if (writeResult.success) {
+      document.getElementById('connectionStatus').innerHTML = 
+        '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)">' +
+        '<strong style="color:var(--success)">✓✓ สำเร็จทั้งอ่านและเขียน!</strong><br><br>' +
+        'ระบบพร้อมใช้งานเต็มรูปแบบ — ลองเลือกวันที่แล้วกด "ดึงข้อมูลจาก Sheet"</div>';
+    } else {
+      document.getElementById('connectionStatus').innerHTML = 
+        '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)">' +
+        '<strong style="color:var(--warning)">⚠️ อ่านได้ แต่เขียนมีปัญหา</strong><br>' +
+        (writeResult.error || '') + '</div>';
+    }
+  }
+  
+  async function manualSync() {
+    const url = getApiUrl();
+    if (!url) {
+      alert('ยังไม่ได้ตั้งค่า Sheets URL — ไปที่ Settings');
+      return;
+    }
+    setSyncStatus('syncing', 'กำลัง sync ข้อมูลวันนี้...');
+    
+    // Sync habits วันนี้
+    const habits = getStore('habits_' + todayKey, {});
+    if (Object.keys(habits).length > 0) {
+      await sendToSheets('habit', { date: todayKey, habits });
+    }
+    
+    setSyncStatus('connected', '✓ Sync เสร็จแล้ว · ' + new Date().toLocaleTimeString('th-TH'));
+  }
+  
+  async function syncAllData() {
+    const url = getApiUrl();
+    if (!url) { alert('ตั้งค่า URL ก่อน'); return; }
+    
+    document.getElementById('fullSyncStatus').innerHTML = '⏳ กำลัง sync ข้อมูลทั้งหมด...';
+    
+    // รวบรวมข้อมูล habits ทั้งหมด
+    const allHabits = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(PREFIX + 'habits_')) {
+        const date = k.replace(PREFIX + 'habits_', '');
+        allHabits[date] = JSON.parse(localStorage.getItem(k));
+      }
+    }
+    
+    const payload = {
+      habits: allHabits,
+      research: getStore('research_log', []),
+      papers: getStore('paper_log', []),
+      runs: getStore('run_log', []),
+      reflections: getStore('reflection_log', [])
+    };
+    
+    const result = await sendToSheets('sync_all', payload);
+    
+    if (result.success) {
+      const counts = `Habits: ${Object.keys(allHabits).length} | Research: ${payload.research.length} | Papers: ${payload.papers.length} | Runs: ${payload.runs.length} | Reflections: ${payload.reflections.length}`;
+      document.getElementById('fullSyncStatus').innerHTML = 
+        '<span style="color:var(--success); font-weight:600">✓ Sync สำเร็จ<br>' + counts + '</span>';
+    } else {
+      document.getElementById('fullSyncStatus').innerHTML = 
+        '<span style="color:var(--error)">⚠️ ' + (result.error || 'ไม่สำเร็จ') + '</span>';
+    }
+  }
+  
+  // โหลดข้อมูลทั้งหมดจาก Sheet (สำหรับเครื่องใหม่ / multi-device)
+  async function loadAllFromSheet() {
+    const url = getApiUrl();
+    if (!url) { alert('ตั้งค่า URL ก่อน'); return; }
+    if (!confirm('จะดึงข้อมูลทั้งหมดจาก Sheet มาทับข้อมูลในเครื่องนี้ — ยืนยัน?')) return;
+    
+    document.getElementById('connectionStatus').innerHTML = '⏳ กำลังโหลดข้อมูลทั้งหมด...';
+    
+    try {
+      const data = await readFromSheetJSONP('getAll');
+      if (!data.success) {
+        document.getElementById('connectionStatus').innerHTML = '<span style="color:var(--error)">⚠️ ' + (data.error || 'ไม่สำเร็จ') + '</span>';
+        return;
+      }
+      
+      // เขียนทับ localStorage
+      if (data.habits) {
+        Object.entries(data.habits).forEach(([date, h]) => setStore('habits_' + date, h));
+      }
+      if (data.research) setStore('research_log', data.research);
+      if (data.runs) setStore('run_log', data.runs);
+      if (data.reflections) setStore('reflection_log', data.reflections);
+      if (data.papers) setStore('paper_log', data.papers);
+      
+      const counts = `Habits: ${Object.keys(data.habits||{}).length} | Research: ${(data.research||[]).length} | Runs: ${(data.runs||[]).length} | Reflections: ${(data.reflections||[]).length} | Papers: ${(data.papers||[]).length}`;
+      document.getElementById('connectionStatus').innerHTML = 
+        '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)"><strong style="color:var(--success)">✓ โหลดสำเร็จ</strong><br>' + counts + '<br><br>refresh หน้าเพื่อดูข้อมูล</div>';
+      
+      // refresh UI
+      reloadAllForDate();
+      renderResearchLog(); renderPaperLog(); renderRunHistory();
+      updateRunStats(); renderReflections(); updateStreak();
+      
+    } catch (e) {
+      document.getElementById('connectionStatus').innerHTML = '<span style="color:var(--error)">⚠️ ' + e.message + '</span>';
+    }
+  }
+  
+  function initSyncStatus() {
+    const url = getApiUrl();
+    if (url) {
+      setSyncStatus('connected', '✓ เชื่อมต่อ Google Sheets แล้ว');
+      document.getElementById('apiUrl').value = url;
+    } else {
+      setSyncStatus('', 'ยังไม่ได้เชื่อมต่อ — ไปที่ Settings');
+    }
+  }
+
+  // ============ RESEARCH ============
+  function loadResearchChapters() {
+    const data = getStore('research_chapters', {});
+    document.querySelectorAll('[data-key]').forEach(item => {
+      const k = item.dataset.key;
+      const cb = item.querySelector('input');
+      if (data[k]) { cb.checked = true; item.classList.add('done'); }
+      cb.addEventListener('change', () => {
+        data[k] = cb.checked;
+        if (cb.checked) item.classList.add('done'); else item.classList.remove('done');
+        setStore('research_chapters', data);
+        updateResearchProgress();
+      });
+    });
+    updateResearchProgress();
+  }
+  function updateResearchProgress() {
+    const data = getStore('research_chapters', {});
+    const total = document.querySelectorAll('[data-key]').length;
+    const done = Object.values(data).filter(v => v).length;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    document.getElementById('researchOverallPct').textContent = pct + '%';
+    document.getElementById('researchOverallBar').style.width = pct + '%';
+    const ch1Done = Object.keys(data).filter(k => k.startsWith('ch1_') && data[k]).length;
+    const ch2Done = Object.keys(data).filter(k => k.startsWith('ch2_') && data[k]).length;
+    let current = 'บทที่ 1';
+    if (ch1Done === 7) current = 'บทที่ 2';
+    if (ch1Done === 7 && ch2Done === 4) current = 'บทที่ 3';
+    document.getElementById('currentChapter').textContent = current;
+  }
+  function saveResearch() {
+    const topic = document.getElementById('researchTopic').value.trim();
+    if (!topic) { alert('ใส่หัวข้อ'); return; }
+    if (setStore('research_topic', topic)) alert('✓ บันทึกแล้ว');
+  }
+  function loadResearchTopic() {
+    const t = getStore('research_topic');
+    if (t) document.getElementById('researchTopic').value = t;
+  }
+  async function logResearch() {
+    const min = parseInt(document.getElementById('researchMinutes').value);
+    const note = document.getElementById('researchNote').value.trim();
+    if (!min) { alert('ใส่จำนวนนาที'); return; }
+    const entry = { date: todayKey, minutes: min, note };
+    // upsert — ลบของวันเดิมก่อน แล้วใส่ใหม่
+    const log = getStore('research_log', []).filter(e => e.date !== todayKey);
+    log.unshift(entry);
+    setStore('research_log', log.slice(0, 200));
+    renderResearchLog();
+    updateTodayResearchTime();
+    await sendToSheets('research', entry);
+  }
+  function renderResearchLog() {
+    const log = getStore('research_log', []);
+    const html = log.slice(0, 8).map(e => `
+      <div class="log-entry">
+        <div class="date">${e.date} · ${e.minutes} min</div>
+        ${e.note || '<i>ไม่มีบันทึก</i>'}
+      </div>`).join('');
+    document.getElementById('researchLog').innerHTML = html || '<div class="empty-state">ยังไม่มีบันทึก</div>';
+  }
+  function updateTodayResearchTime() {
+    const log = getStore('research_log', []);
+    const todayTotal = log.filter(e => e.date === todayKey).reduce((s, e) => s + e.minutes, 0);
+    document.getElementById('todayResearchTime').textContent = todayTotal + ' นาที';
+  }
+
+  // ============ PAPERS ============
+  async function logPaper() {
+    const title = document.getElementById('paperTitle').value.trim();
+    const round = document.getElementById('paperRound').value;
+    const note = document.getElementById('paperNote').value.trim();
+    if (!title) { alert('ใส่ชื่อ paper'); return; }
+    const roundLabel = { scan: 'SCAN', read: 'READ', deep: 'DEEP' }[round];
+    const entry = { date: todayKey, title, round: roundLabel, note };
+    const log = getStore('paper_log', []);
+    log.unshift(entry);
+    setStore('paper_log', log.slice(0, 200));
+    document.getElementById('paperTitle').value = '';
+    document.getElementById('paperNote').value = '';
+    renderPaperLog();
+    await sendToSheets('paper', entry);
+  }
+  function renderPaperLog() {
+    const log = getStore('paper_log', []);
+    const total = log.length;
+    const html = log.slice(0, 8).map(e => `
+      <div class="log-entry">
+        <div class="date">${e.date} · ${e.round}</div>
+        <strong>${e.title}</strong>
+        ${e.note ? '<div style="margin-top:6px; color:var(--gray)">' + e.note + '</div>' : ''}
+      </div>`).join('');
+    const counter = total > 0 ? `<div style="margin-bottom:12px; padding:12px 16px; background:var(--ink); color:var(--pearl); border-radius:8px; font-size:13px"><strong style="color:var(--tiger)">${total}</strong> papers · เป้า 90 วัน: 40-50</div>` : '';
+    document.getElementById('paperLog').innerHTML = counter + (html || '<div class="empty-state">ยังไม่มี paper</div>');
+  }
+
+  // ============ HABITS ============
+  function loadHabits() {
+    document.querySelectorAll('[data-habit]').forEach(item => {
+      const h = item.dataset.habit;
+      const cb = item.querySelector('input');
+      cb.addEventListener('change', async () => {
+        // อ่าน todayKey ปัจจุบัน (อาจเปลี่ยนจาก date picker)
+        const data = getStore('habits_' + todayKey, {});
+        data[h] = cb.checked;
+        if (cb.checked) item.classList.add('done'); else item.classList.remove('done');
+        setStore('habits_' + todayKey, data);
+        updateHabitsSummary();
+        updateStreak();
+        await sendToSheets('habit', { date: todayKey, habits: data });
+      });
+    });
+    // โหลดค่าเริ่มต้นของวันนี้
+    const data = getStore('habits_' + todayKey, {});
+    document.querySelectorAll('[data-habit]').forEach(item => {
+      const h = item.dataset.habit;
+      const cb = item.querySelector('input');
+      if (data[h]) { cb.checked = true; item.classList.add('done'); }
+    });
+    updateHabitsSummary();
+    renderWeeklyStats();
+  }
+  function updateHabitsSummary() {
+    const data = getStore('habits_' + todayKey, {});
+    const total = document.querySelectorAll('[data-habit]').length;
+    const done = Object.values(data).filter(v => v).length;
+    document.getElementById('todayDone').textContent = done + '/' + total;
+    document.getElementById('todayBar').style.width = (done/total*100) + '%';
+  }
+  function renderWeeklyStats() {
+    const labels = { meditation:'🧘 สมาธิ', reading:'📖 อ่าน', english:'🌍 อังกฤษ', exercise:'🏃 ออกกำลังกาย', research:'📚 วิจัย' };
+    const counts = { meditation:0, reading:0, english:0, exercise:0, research:0 };
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = 'habits_' + d.toISOString().split('T')[0];
+      const data = getStore(key, {});
+      Object.keys(counts).forEach(h => { if (data[h]) counts[h]++; });
+    }
+    const html = Object.keys(counts).map(h => `
+      <div class="stat-row">
+        <span class="label">${labels[h]}</span>
+        <span class="value">${counts[h]}/7</span>
+      </div>`).join('');
+    document.getElementById('weeklyStats').innerHTML = html;
+  }
+  function updateStreak() {
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = 'habits_' + d.toISOString().split('T')[0];
+      const data = getStore(key, {});
+      const done = Object.values(data).filter(v => v).length;
+      if (done >= 3) streak++; else break;
+    }
+    document.getElementById('streakNumber').textContent = streak;
+  }
+
+  // ============ FOCUS ============
+  function saveWeeklyFocus() {
+    const v = document.getElementById('weeklyFocus').value.trim();
+    if (setStore('weekly_focus', v)) alert('✓ บันทึกแล้ว');
+  }
+  function loadWeeklyFocus() {
+    const v = getStore('weekly_focus');
+    if (v) document.getElementById('weeklyFocus').value = v;
+  }
+
+  // ============ RUNNING ============
+  async function logRun() {
+    const distance = parseFloat(document.getElementById('runDistance').value);
+    const pace = document.getElementById('runPace').value.trim();
+    const minutes = parseInt(document.getElementById('runMinutes').value);
+    const note = document.getElementById('runNote').value.trim();
+    if (!distance) { alert('ใส่ระยะทาง'); return; }
+    const entry = { date: todayKey, distance, pace, minutes, note };
+    // upsert
+    const log = getStore('run_log', []).filter(e => e.date !== todayKey);
+    log.unshift(entry);
+    setStore('run_log', log.slice(0, 200));
+    renderRunHistory();
+    updateRunStats();
+    updatePhase();
+    await sendToSheets('run', entry);
+    alert('✓ บันทึก/แก้ไขการวิ่งของ ' + todayKey + ' แล้ว');
+  }
+  function renderRunHistory() {
+    const log = getStore('run_log', []);
+    const html = log.slice(0, 8).map(e => `
+      <div class="log-entry">
+        <div class="date">${e.date}</div>
+        <strong>${e.distance} km</strong> ${e.pace ? '· ' + e.pace + ' pace' : ''} ${e.minutes ? '· ' + e.minutes + ' min' : ''}
+        ${e.note ? '<div style="margin-top:4px; color:var(--gray)">' + e.note + '</div>' : ''}
+      </div>`).join('');
+    document.getElementById('runHistory').innerHTML = html || '<div class="empty-state">ยังไม่มีบันทึก</div>';
+  }
+  function updateRunStats() {
+    const log = getStore('run_log', []);
+    if (log.length > 0) {
+      document.getElementById('lastRunDate').textContent = log[0].date;
+      document.getElementById('lastPace').textContent = log[0].pace || '-';
+    }
+    document.getElementById('totalRuns').textContent = log.length;
+  }
+  function updatePhase() {
+    const log = getStore('run_log', []);
+    const phases = [
+      { min: 0, max: 2, text: 'PHASE 01 · Rebuild Foundation — Walk 4 min + jog 1 min × 5 · 3 ครั้ง/สัปดาห์' },
+      { min: 3, max: 6, text: 'PHASE 02 · Easy Continuous Run — 20-30 min ที่ pace 6:30-7:00' },
+      { min: 7, max: 18, text: 'PHASE 03 · Base Building — 30-45 min, 3-4 ครั้ง/สัปดาห์ + long run' },
+      { min: 19, max: 30, text: 'PHASE 04 · Threshold — tempo run · เป้า 10K pace 4:30' },
+      { min: 31, max: 50, text: 'PHASE 05 · Speed Work — interval · เป้า pace 4:10' },
+      { min: 51, max: 999, text: 'PHASE 06 · Peak — TIME TRIAL · 10K ใน 40 นาที (pace 4:00)' }
+    ];
+    const phase = phases.find(p => log.length >= p.min && log.length <= p.max) || phases[0];
+    document.getElementById('currentPhase').innerHTML = phase.text;
+  }
+
+  // ============ REFLECTION ============
+  async function saveReflection() {
+    const win = document.getElementById('reflectWin').value.trim();
+    const ch = document.getElementById('reflectChallenge').value.trim();
+    const next = document.getElementById('reflectNext').value.trim();
+    if (!win && !ch && !next) { alert('เขียนอย่างน้อย 1 ช่อง'); return; }
+    const entry = { date: todayKey, win, challenge: ch, next };
+    // upsert
+    const log = getStore('reflection_log', []).filter(e => e.date !== todayKey);
+    log.unshift(entry);
+    setStore('reflection_log', log.slice(0, 200));
+    renderReflections();
+    await sendToSheets('reflection', entry);
+    alert('✓ บันทึก/แก้ไข reflection ของ ' + todayKey + ' แล้ว');
+  }
+  function renderReflections() {
+    const log = getStore('reflection_log', []);
+    const html = log.slice(0, 10).map(e => `
+      <div class="log-entry">
+        <div class="date">${e.date}</div>
+        ${e.win ? '<div style="margin-bottom:4px"><strong>✨</strong> ' + e.win + '</div>' : ''}
+        ${e.challenge ? '<div style="margin-bottom:4px"><strong>🌧️</strong> ' + e.challenge + '</div>' : ''}
+        ${e.next ? '<div><strong>🎯</strong> ' + e.next + '</div>' : ''}
+      </div>`).join('');
+    document.getElementById('reflectionHistory').innerHTML = html || '<div class="empty-state">ยังไม่มีบันทึก</div>';
+  }
+
+  // ============ BACKUP ============
+  function exportData() {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(PREFIX)) data[key] = localStorage.getItem(key);
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dashboard_backup_${todayKey}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert('✓ Export สำเร็จ');
+  }
+  function importData() {
+    const file = document.getElementById('importFile').files[0];
+    if (!file) { alert('เลือกไฟล์ก่อน'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!confirm('ข้อมูลปัจจุบันจะถูกแทนที่ ยืนยัน?')) return;
+        for (const key in data) {
+          if (key.startsWith(PREFIX)) localStorage.setItem(key, data[key]);
+        }
+        alert('✓ Import สำเร็จ — refresh หน้า');
+        location.reload();
+      } catch (err) { alert('ไฟล์ไม่ถูกต้อง'); }
+    };
+    reader.readAsText(file);
+  }
+  function resetData() {
+    if (!confirm('ลบข้อมูล localStorage? (ข้อมูลใน Sheets จะยังอยู่)')) return;
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(PREFIX)) keys.push(key);
+    }
+    keys.forEach(k => localStorage.removeItem(k));
+    location.reload();
+  }
+
+  // Init
+  initSyncStatus();
+  loadResearchChapters();
+  loadResearchTopic();
+  renderResearchLog();
+  updateTodayResearchTime();
+  renderPaperLog();
+  loadHabits();
+  updateStreak();
+  loadWeeklyFocus();
+  renderRunHistory();
+  updateRunStats();
+  updatePhase();
+  renderReflections();
+  loadDayIntoForms();
+  
+  // ถ้าเชื่อม Sheet แล้ว → auto-pull ข้อมูลวันนี้ (multi-device)
+  if (getApiUrl()) {
+    setTimeout(() => pullFromSheet(), 800);
+  }
+</script>
+</body>
+</html>

@@ -6,1387 +6,1375 @@
 <meta name="color-scheme" content="light only">
 <meta name="theme-color" content="#F5F1EA">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Personal Dashboard — Nitipong</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>ระบบติดตามตนเอง — ผอ.นิติพงษ์</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Bai+Jamjuree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     color-scheme: light only;
     --tiger: #FF6B35;
     --tiger-dark: #E5562C;
+    --tiger-light: #FF8855;
     --ink: #0F0F0F;
     --ink-soft: #1A1A1A;
     --pearl: #F5F1EA;
     --pearl-dark: #ECE6DB;
     --gray: #6B6B6B;
     --gray-light: #A8A8A8;
-    --line: rgba(15, 15, 15, 0.08);
+    --line: rgba(15,15,15,0.08);
     --success: #2ecc71;
     --warning: #f39c12;
     --error: #e74c3c;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Sarabun', 'Space Grotesk', sans-serif;
-    background: var(--pearl); color: var(--ink);
-    min-height: 100vh; padding: 32px 24px;
-    line-height: 1.5; -webkit-font-smoothing: antialiased;
-  }
-  .display-font { font-family: 'Space Grotesk', 'Sarabun', sans-serif; letter-spacing: -0.02em; }
-  .container { max-width: 1280px; margin: 0 auto; }
-  
-  .header {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    padding-bottom: 32px; margin-bottom: 32px; border-bottom: 1px solid var(--ink);
-  }
-  .header-left h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(48px, 7vw, 88px); font-weight: 700;
-    line-height: 0.95; letter-spacing: -0.04em; color: var(--ink);
-  }
-  .header-left h1 .accent { color: var(--tiger); }
-  .header-left p { margin-top: 12px; font-size: 15px; color: var(--gray); max-width: 480px; }
-  .header-right { text-align: right; font-family: 'Space Grotesk', sans-serif; }
-  .header-right .date { font-size: 13px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gray); margin-bottom: 4px; }
-  .header-right .day { font-size: 24px; font-weight: 600; color: var(--ink); }
-  
-  /* Sync Status Indicator */
-  .sync-bar {
-    display: flex; align-items: center; gap: 12px;
-    background: var(--ink); color: var(--pearl);
-    padding: 12px 20px; margin-bottom: 32px;
-    border-radius: 12px; font-size: 13px;
-    font-family: 'Space Grotesk', sans-serif;
-  }
-  .sync-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--gray-light);
-  }
-  .sync-dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
-  .sync-dot.syncing { background: var(--tiger); animation: pulse 1s infinite; }
-  .sync-dot.error { background: var(--error); }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .sync-bar .status-text { flex: 1; }
-  .sync-bar button {
-    background: var(--tiger); color: var(--ink);
-    border: none; padding: 6px 14px; border-radius: 100px;
-    font-size: 12px; font-weight: 600; cursor: pointer;
-    font-family: inherit;
-  }
-  .sync-bar button:hover { background: white; }
-  
-  .tabs {
-    display: flex; gap: 4px; margin-bottom: 32px; flex-wrap: wrap;
-    border-bottom: 1px solid var(--line); padding-bottom: 0;
-  }
-  .tab {
-    padding: 14px 24px; background: transparent; border: none; cursor: pointer;
-    font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 500;
-    color: var(--gray); letter-spacing: 0.02em; position: relative; transition: color 0.2s;
-  }
-  .tab:hover { color: var(--ink); }
-  .tab.active { color: var(--ink); font-weight: 600; }
-  .tab.active::after {
-    content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
-    height: 2px; background: var(--tiger);
-  }
-  
-  .panel { display: none; animation: fadeIn 0.3s ease; }
-  .panel.active { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .grid {
-    display: grid; grid-template-columns: repeat(12, 1fr);
-    gap: 16px; margin-bottom: 16px;
-  }
-  .col-4 { grid-column: span 4; }
-  .col-6 { grid-column: span 6; }
-  .col-8 { grid-column: span 8; }
-  .col-12 { grid-column: span 12; }
-  @media (max-width: 900px) {
-    .col-4, .col-6, .col-8 { grid-column: span 12; }
-  }
-  
-  .card {
-    background: white; border: 1px solid var(--line); border-radius: 20px;
-    padding: 28px; transition: all 0.25s ease; position: relative; overflow: hidden;
-  }
-  .card:hover { border-color: var(--ink); transform: translateY(-2px); }
-  .card-dark { background: var(--ink); color: var(--pearl); border-color: var(--ink); }
-  .card-dark:hover { background: var(--ink-soft); }
-  .card-tiger { background: var(--tiger); color: var(--ink); border-color: var(--tiger); }
-  .card-tiger:hover { background: var(--tiger-dark); border-color: var(--tiger-dark); }
-  
-  .card-label {
-    font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.18em; color: var(--gray);
-    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
-  }
-  .card-dark .card-label { color: var(--tiger); }
-  .card-tiger .card-label { color: var(--ink); opacity: 0.7; }
-  .card-title { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 16px; }
-  
-  .big-stat { display: flex; align-items: baseline; gap: 12px; margin: 8px 0; }
-  .big-stat-num {
-    font-family: 'Space Grotesk', sans-serif; font-size: 88px;
-    font-weight: 700; line-height: 1; letter-spacing: -0.04em;
-  }
-  .big-stat-label { font-size: 14px; color: var(--gray-light); font-weight: 500; }
-  .card-dark .big-stat-label { color: var(--gray-light); }
-  
-  .progress-bar { background: rgba(15, 15, 15, 0.08); height: 4px; overflow: hidden; margin: 12px 0; }
-  .card-dark .progress-bar { background: rgba(255, 255, 255, 0.1); }
-  .progress-fill { height: 100%; background: var(--tiger); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-  
-  .stat-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px;
-  }
-  .card-dark .stat-row { border-color: rgba(255, 255, 255, 0.1); }
-  .stat-row:last-child { border-bottom: none; }
-  .stat-row .label { color: var(--gray); }
-  .card-dark .stat-row .label { color: var(--gray-light); }
-  .stat-row .value { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; }
-  .stat-row .value.accent { color: var(--tiger); }
-  
-  .checkbox-item {
-    display: flex; align-items: center; gap: 14px; padding: 14px 18px;
-    background: var(--pearl); border: 1px solid transparent; border-radius: 12px;
-    margin-bottom: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px;
-  }
-  .checkbox-item:hover { border-color: var(--ink); background: white; }
-  .checkbox-item.done {
-    background: var(--ink); color: var(--pearl);
-    text-decoration: line-through; text-decoration-color: var(--tiger); text-decoration-thickness: 2px;
-  }
-  .checkbox-item input { width: 20px; height: 20px; cursor: pointer; accent-color: var(--tiger); }
-  
-  input[type="text"], input[type="number"], input[type="url"], textarea, select {
-    width: 100%; padding: 14px 16px; border: 1px solid var(--line);
-    border-radius: 10px; font-size: 14px; font-family: inherit;
-    margin-bottom: 10px; background: var(--pearl); transition: all 0.2s;
-  }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--ink); background: white; }
-  
-  button.btn {
-    font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600;
-    padding: 14px 28px; border: none; border-radius: 100px; cursor: pointer;
-    transition: all 0.2s; letter-spacing: 0.01em;
-    display: inline-flex; align-items: center; gap: 8px;
-  }
-  button.btn-primary { background: var(--ink); color: var(--pearl); }
-  button.btn-primary:hover { background: var(--tiger); color: var(--ink); }
-  button.btn-tiger { background: var(--tiger); color: var(--ink); }
-  button.btn-tiger:hover { background: var(--ink); color: var(--pearl); }
-  button.btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
-  button.btn-outline:hover { background: var(--ink); color: var(--pearl); }
-  button.btn-danger { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
-  button.btn-danger:hover { background: #c0392b; color: white; border-color: #c0392b; }
-  
-  .highlight-block {
-    background: var(--tiger); color: var(--ink); padding: 32px;
-    border-radius: 20px; margin-bottom: 16px; position: relative;
-  }
-  .highlight-block .quote-text {
-    font-family: 'Space Grotesk', sans-serif; font-size: 24px;
-    font-weight: 500; line-height: 1.3; letter-spacing: -0.02em;
-  }
-  .highlight-block::before {
-    content: '"'; font-family: 'Space Grotesk', sans-serif;
-    font-size: 120px; font-weight: 700; line-height: 1;
-    position: absolute; top: 16px; right: 28px; opacity: 0.3;
-  }
-  
-  .log-entry {
-    background: var(--pearl); padding: 16px 18px; border-radius: 12px;
-    margin-bottom: 8px; font-size: 14px; border-left: 3px solid var(--tiger);
-  }
-  .log-entry .date {
-    font-family: 'Space Grotesk', sans-serif; font-size: 11px;
-    text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray); margin-bottom: 6px;
-  }
-  
-  .badge {
-    display: inline-block; padding: 4px 10px; border-radius: 100px;
-    font-family: 'Space Grotesk', sans-serif; font-size: 10px;
-    font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-left: 8px;
-  }
-  .badge-tiger { background: var(--tiger); color: var(--ink); }
-  
-  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-light); font-size: 14px; }
-  
-  .section-header {
-    display: flex; align-items: baseline; justify-content: space-between;
-    margin-bottom: 20px; padding-top: 8px;
-  }
-  .section-header h2 {
-    font-family: 'Space Grotesk', sans-serif; font-size: 32px;
-    font-weight: 700; letter-spacing: -0.03em;
-  }
-  .section-header .meta { font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.15em; }
-  
-  label.field-label {
-    display: block; font-family: 'Space Grotesk', sans-serif;
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.15em; color: var(--gray); margin-bottom: 8px; margin-top: 12px;
-  }
-  
-  .phase-indicator {
-    background: var(--ink); color: var(--pearl); padding: 24px 28px;
-    border-radius: 16px; font-size: 15px; line-height: 1.5;
-    border-left: 4px solid var(--tiger);
-  }
-  
-  .sheet-link-box {
-    background: var(--ink); color: var(--pearl);
-    padding: 20px; border-radius: 12px; margin-top: 16px;
-    word-break: break-all; font-size: 12px; font-family: monospace;
-  }
-  .sheet-link-box strong { color: var(--tiger); display: block; margin-bottom: 8px; font-family: 'Space Grotesk'; font-size: 14px; }
-  
-  @media (max-width: 600px) {
-    body { padding: 20px 16px; }
-    .header { flex-direction: column; align-items: flex-start; gap: 16px; }
-    .header-right { text-align: left; }
-    .card { padding: 20px; }
-    .big-stat-num { font-size: 64px; }
-    .section-header h2 { font-size: 24px; }
-    .tab { padding: 12px 16px; font-size: 13px; }
-  }
-  
-  /* บังคับ light theme บนมือถือ dark mode */
   html { color-scheme: light only; }
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--pearl); color: var(--ink);
+    min-height: 100vh; padding: 28px 22px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .display { font-family: 'Bai Jamjuree','Sarabun',sans-serif; letter-spacing: -0.01em; }
+  .container { max-width: 1240px; margin: 0 auto; }
+
+  /* dark mode override (บังคับ light) */
   @media (prefers-color-scheme: dark) {
     :root { color-scheme: light only; }
-    body { background: #F5F1EA !important; color: #0F0F0F !important; }
-    .card { background: #ffffff !important; color: #0F0F0F !important; }
-    .card-dark { background: #0F0F0F !important; color: #F5F1EA !important; }
-    .card-tiger { background: #FF6B35 !important; color: #0F0F0F !important; }
-    .checkbox-item { background: #F5F1EA !important; color: #0F0F0F !important; }
-    .checkbox-item.done { background: #0F0F0F !important; color: #F5F1EA !important; }
-    input, textarea, select { 
-      background: #F5F1EA !important; color: #0F0F0F !important;
-      -webkit-text-fill-color: #0F0F0F !important;
-    }
-    .log-entry { background: #F5F1EA !important; color: #0F0F0F !important; }
-    .sync-bar { background: #0F0F0F !important; color: #F5F1EA !important; }
-    .header-left h1, .header-right .day { color: #0F0F0F !important; }
+    body { background:#F5F1EA !important; color:#0F0F0F !important; }
+    .card { background:#fff !important; color:#0F0F0F !important; }
+    .card-dark { background:#0F0F0F !important; color:#F5F1EA !important; }
+    .card-tiger { background:#FF6B35 !important; color:#0F0F0F !important; }
+    .chk { background:#F5F1EA !important; color:#0F0F0F !important; }
+    .chk.done { background:#0F0F0F !important; color:#F5F1EA !important; }
+    input,textarea,select { background:#F5F1EA !important; color:#0F0F0F !important; -webkit-text-fill-color:#0F0F0F !important; }
+    .log { background:#F5F1EA !important; color:#0F0F0F !important; }
+    .topbar { background:#0F0F0F !important; color:#F5F1EA !important; }
+    .datebar { background:#fff !important; }
+    h1,h2,.day { color:#0F0F0F !important; }
   }
-  
-  /* Date Picker Bar */
-  .date-bar {
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    background: white; border: 1px solid var(--ink);
-    padding: 16px 20px; border-radius: 16px; margin-bottom: 24px;
-  }
-  .date-bar .date-label {
-    font-family: 'Space Grotesk', sans-serif; font-size: 12px;
-    text-transform: uppercase; letter-spacing: 0.15em; color: var(--gray);
-  }
-  .date-bar input[type="date"] {
-    width: auto; margin: 0; padding: 10px 14px; background: var(--pearl);
-    border: 1px solid var(--line); font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600; cursor: pointer;
-  }
-  @media (prefers-color-scheme: dark) {
-    .date-bar { background: #ffffff !important; }
-    .date-bar input[type="date"] { background: #F5F1EA !important; color: #0F0F0F !important; -webkit-text-fill-color: #0F0F0F !important; }
-  }
-  .date-bar .editing-badge {
-    background: var(--tiger); color: var(--ink); padding: 4px 12px;
-    border-radius: 100px; font-size: 11px; font-weight: 600;
-    font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.1em;
-  }
-  .date-bar .today-btn {
-    background: var(--ink); color: var(--pearl); border: none;
-    padding: 8px 16px; border-radius: 100px; font-size: 12px;
-    font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
-  }
-  .date-bar .pull-btn {
-    background: var(--tiger); color: var(--ink); border: none;
-    padding: 8px 16px; border-radius: 100px; font-size: 12px;
-    font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+
+  /* HEADER */
+  .header { display:flex; justify-content:space-between; align-items:flex-end;
+    padding-bottom:26px; margin-bottom:24px; border-bottom:2px solid var(--ink); }
+  .header h1 { font-family:'Bai Jamjuree',sans-serif; font-size:clamp(36px,6vw,68px);
+    font-weight:700; line-height:0.98; letter-spacing:-0.03em; }
+  .header h1 .ac { color:var(--tiger); }
+  .header p { margin-top:10px; font-size:14px; color:var(--gray); max-width:460px; }
+  .header-right { text-align:right; }
+  .header-right .date { font-size:12px; letter-spacing:0.12em; color:var(--gray); }
+  .header-right .day { font-size:22px; font-weight:600; }
+
+  /* TOP STATUS BAR */
+  .topbar { display:flex; align-items:center; gap:12px; background:var(--ink);
+    color:var(--pearl); padding:12px 18px; margin-bottom:16px; border-radius:14px; font-size:13px; flex-wrap:wrap; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--gray-light); flex-shrink:0; }
+  .dot.on { background:var(--success); box-shadow:0 0 8px var(--success); }
+  .dot.sync { background:var(--tiger); animation:pulse 1s infinite; }
+  .dot.err { background:var(--error); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .topbar .st { flex:1; min-width:140px; }
+  .topbar button { background:var(--tiger); color:var(--ink); border:none; padding:6px 14px;
+    border-radius:100px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .topbar button:hover { background:#fff; }
+
+  /* DATE BAR */
+  .datebar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:#fff;
+    border:1px solid var(--ink); padding:14px 18px; border-radius:14px; margin-bottom:20px; }
+  .datebar .lbl { font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--gray); font-weight:600; }
+  .datebar input[type=date] { width:auto; margin:0; padding:9px 12px; background:var(--pearl);
+    border:1px solid var(--line); font-family:'Bai Jamjuree',sans-serif; font-weight:600; cursor:pointer; border-radius:8px; }
+  .datebar button { border:none; padding:8px 15px; border-radius:100px; font-size:12px; font-weight:600;
+    cursor:pointer; font-family:inherit; }
+  .b-today { background:var(--ink); color:var(--pearl); }
+  .b-pull { background:var(--tiger); color:var(--ink); }
+  .b-edit { background:var(--tiger); color:var(--ink); padding:4px 12px; border-radius:100px;
+    font-size:11px; font-weight:600; }
+
+  /* TABS */
+  .tabs { display:flex; gap:2px; margin-bottom:24px; flex-wrap:wrap; border-bottom:1px solid var(--line); }
+  .tab { padding:13px 20px; background:none; border:none; cursor:pointer; font-family:'Bai Jamjuree',sans-serif;
+    font-size:14px; font-weight:500; color:var(--gray); position:relative; transition:color .2s; }
+  .tab:hover { color:var(--ink); }
+  .tab.active { color:var(--ink); font-weight:600; }
+  .tab.active::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:var(--tiger); }
+
+  .panel { display:none; animation:fade .3s ease; }
+  .panel.active { display:block; }
+  @keyframes fade { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+  /* GRID */
+  .grid { display:grid; grid-template-columns:repeat(12,1fr); gap:14px; margin-bottom:14px; }
+  .c3{grid-column:span 3} .c4{grid-column:span 4} .c5{grid-column:span 5}
+  .c6{grid-column:span 6} .c7{grid-column:span 7} .c8{grid-column:span 8} .c12{grid-column:span 12}
+  @media(max-width:900px){ .c3,.c4,.c5,.c6,.c7,.c8{grid-column:span 12} }
+
+  /* CARDS */
+  .card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:24px;
+    transition:all .25s ease; position:relative; overflow:hidden; }
+  .card:hover { border-color:var(--ink); transform:translateY(-2px); }
+  .card-dark { background:var(--ink); color:var(--pearl); border-color:var(--ink); }
+  .card-dark:hover { background:var(--ink-soft); }
+  .card-tiger { background:var(--tiger); color:var(--ink); border-color:var(--tiger); }
+  .card-tiger:hover { background:var(--tiger-dark); }
+  .lbl { font-family:'Bai Jamjuree',sans-serif; font-size:11px; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.14em; color:var(--gray); margin-bottom:10px; display:flex; align-items:center; gap:7px; }
+  .card-dark .lbl { color:var(--tiger); }
+  .card-tiger .lbl { color:var(--ink); opacity:0.7; }
+  .title { font-family:'Bai Jamjuree',sans-serif; font-size:19px; font-weight:600; margin-bottom:14px; }
+
+  .bignum { font-family:'Bai Jamjuree',sans-serif; font-size:76px; font-weight:700; line-height:1; letter-spacing:-0.03em; }
+  .bignum.sm { font-size:54px; }
+
+  .bar { background:rgba(15,15,15,0.08); height:5px; overflow:hidden; margin:10px 0; border-radius:3px; }
+  .card-dark .bar { background:rgba(255,255,255,0.12); }
+  .fill { height:100%; background:var(--tiger); transition:width .6s cubic-bezier(.4,0,.2,1); }
+
+  .row { display:flex; justify-content:space-between; align-items:center; padding:11px 0;
+    border-bottom:1px solid var(--line); font-size:14px; }
+  .card-dark .row { border-color:rgba(255,255,255,0.1); }
+  .row:last-child { border-bottom:none; }
+  .row .k { color:var(--gray); }
+  .card-dark .row .k { color:var(--gray-light); }
+  .row .v { font-family:'Bai Jamjuree',sans-serif; font-weight:600; }
+  .row .v.ac { color:var(--tiger); }
+
+  /* CHECKBOX */
+  .chk { display:flex; align-items:center; gap:12px; padding:13px 16px; background:var(--pearl);
+    border:1px solid transparent; border-radius:11px; margin-bottom:7px; cursor:pointer; transition:all .2s; font-size:14px; }
+  .chk:hover { border-color:var(--ink); background:#fff; }
+  .chk.done { background:var(--ink); color:var(--pearl); text-decoration:line-through;
+    text-decoration-color:var(--tiger); text-decoration-thickness:2px; }
+  .chk input { width:19px; height:19px; cursor:pointer; accent-color:var(--tiger); flex-shrink:0; }
+  .chk .streak-mini { margin-left:auto; font-family:'Bai Jamjuree'; font-size:12px; font-weight:600;
+    color:var(--tiger); background:rgba(255,107,53,0.12); padding:2px 8px; border-radius:100px; }
+  .chk.done .streak-mini { background:rgba(255,107,53,0.25); }
+
+  input[type=text],input[type=number],input[type=url],textarea,select {
+    width:100%; padding:13px 15px; border:1px solid var(--line); border-radius:10px; font-size:14px;
+    font-family:inherit; margin-bottom:9px; background:var(--pearl); transition:all .2s; }
+  input:focus,textarea:focus,select:focus { outline:none; border-color:var(--ink); background:#fff; }
+
+  .btn { font-family:'Bai Jamjuree',sans-serif; font-size:14px; font-weight:600; padding:13px 26px;
+    border:none; border-radius:100px; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:7px; }
+  .btn-ink { background:var(--ink); color:var(--pearl); }
+  .btn-ink:hover { background:var(--tiger); color:var(--ink); }
+  .btn-tiger { background:var(--tiger); color:var(--ink); }
+  .btn-tiger:hover { background:var(--ink); color:var(--pearl); }
+  .btn-out { background:transparent; color:var(--ink); border:1px solid var(--ink); }
+  .btn-out:hover { background:var(--ink); color:var(--pearl); }
+  .btn-dang { background:transparent; color:var(--ink); border:1px solid var(--ink); }
+  .btn-dang:hover { background:#c0392b; color:#fff; border-color:#c0392b; }
+
+  .quote { background:var(--tiger); color:var(--ink); padding:28px; border-radius:18px; margin-bottom:14px; position:relative; }
+  .quote .qt { font-family:'Bai Jamjuree',sans-serif; font-size:22px; font-weight:500; line-height:1.35; }
+  .quote::before { content:'"'; font-family:'Bai Jamjuree'; font-size:110px; font-weight:700; line-height:1;
+    position:absolute; top:14px; right:26px; opacity:0.25; }
+
+  .log { background:var(--pearl); padding:14px 16px; border-radius:11px; margin-bottom:7px; font-size:14px;
+    border-left:3px solid var(--tiger); }
+  .log .d { font-family:'Bai Jamjuree'; font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--gray); margin-bottom:5px; }
+  .del { float:right; background:none; border:none; color:var(--error); cursor:pointer; font-size:15px; }
+
+  .badge { display:inline-block; padding:3px 9px; border-radius:100px; font-family:'Bai Jamjuree';
+    font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; margin-left:7px; }
+  .badge-tiger { background:var(--tiger); color:var(--ink); }
+  .badge-ink { background:var(--ink); color:var(--pearl); }
+  .badge-out { background:transparent; border:1px solid var(--tiger); color:var(--tiger); }
+
+  .empty { text-align:center; padding:32px 18px; color:var(--gray-light); font-size:14px; }
+
+  .sechead { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:18px; padding-top:6px; }
+  .sechead h2 { font-family:'Bai Jamjuree',sans-serif; font-size:30px; font-weight:700; letter-spacing:-0.02em; }
+  .sechead .meta { font-size:12px; color:var(--gray); text-transform:uppercase; letter-spacing:0.12em; }
+
+  .flbl { display:block; font-family:'Bai Jamjuree'; font-size:11px; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.12em; color:var(--gray); margin-bottom:7px; margin-top:10px; }
+
+  /* PHASE STEPPER (R&D) */
+  .stepper { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .step { flex:1; min-width:120px; padding:14px; border-radius:12px; border:2px solid var(--line);
+    background:var(--pearl); cursor:pointer; transition:all .2s; }
+  .step:hover { border-color:var(--ink); }
+  .step.active { border-color:var(--tiger); background:#fff; }
+  .step.done { background:var(--ink); color:var(--pearl); border-color:var(--ink); }
+  .step .sn { font-family:'Bai Jamjuree'; font-size:11px; letter-spacing:0.1em; opacity:0.7; }
+  .step .st { font-family:'Bai Jamjuree'; font-size:15px; font-weight:600; margin:4px 0; }
+  .step .sp { font-size:12px; }
+  .step .sbar { background:rgba(15,15,15,0.1); height:4px; border-radius:2px; margin-top:8px; overflow:hidden; }
+  .step.done .sbar { background:rgba(255,255,255,0.2); }
+  .step .sfill { height:100%; background:var(--tiger); }
+
+  /* COUNTDOWN */
+  .countdown { display:flex; gap:16px; flex-wrap:wrap; }
+  .cd-item { text-align:center; }
+  .cd-num { font-family:'Bai Jamjuree'; font-size:40px; font-weight:700; line-height:1; color:var(--tiger); }
+  .cd-lbl { font-size:11px; color:var(--gray-light); text-transform:uppercase; letter-spacing:0.1em; margin-top:4px; }
+
+  /* POMODORO */
+  .pomo { text-align:center; }
+  .pomo-time { font-family:'Bai Jamjuree'; font-size:80px; font-weight:700; line-height:1; letter-spacing:-0.03em; }
+  .pomo-controls { display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+  .pomo-state { font-size:13px; color:var(--gray-light); margin-top:8px; text-transform:uppercase; letter-spacing:0.1em; }
+
+  /* VISION */
+  .vision-item { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.1); }
+  .vision-item:last-child { border:none; }
+  .vision-ic { font-size:22px; flex-shrink:0; }
+
+  @media(max-width:600px){
+    body{padding:18px 14px}
+    .header{flex-direction:column;align-items:flex-start;gap:14px}
+    .header-right{text-align:left}
+    .card{padding:18px}
+    .bignum{font-size:56px}
+    .pomo-time{font-size:64px}
+    .sechead h2{font-size:23px}
+    .tab{padding:11px 14px;font-size:13px}
   }
 </style>
 </head>
 <body>
 <div class="container">
-
-  <header class="header">
-    <div class="header-left">
-      <h1>Daily<br><span class="accent">Discipline.</span></h1>
-      <p>ระบบติดตามการพัฒนาตนเอง — ผอ.นิติพงษ์<br>เส้นทางสู่วิทยฐานะเชี่ยวชาญ + 10K/40 นาที</p>
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1 class="display">ระบบ<span class="ac">ติดตาม</span>ตนเอง</h1>
+      <p>ผอ.นิติพงษ์ · โรงเรียนบ้านโปงทุ่ง · เส้นทางสู่วิทยฐานะเชี่ยวชาญ</p>
     </div>
     <div class="header-right">
-      <div class="date" id="todayDate"></div>
-      <div class="day display-font" id="todayDay"></div>
+      <div class="date" id="hDate">—</div>
+      <div class="day" id="hDay">—</div>
     </div>
-  </header>
+  </div>
 
   <!-- SYNC STATUS BAR -->
-  <div class="sync-bar">
-    <div class="sync-dot" id="syncDot"></div>
-    <div class="status-text" id="syncStatus">ยังไม่ได้เชื่อมต่อ Google Sheets — ไปที่ Settings เพื่อตั้งค่า</div>
-    <button onclick="manualSync()" id="syncBtn">Sync Now</button>
+  <div class="topbar">
+    <span class="dot" id="syncDot"></span>
+    <span class="st" id="syncText">ยังไม่ได้เชื่อมต่อ Google Sheet</span>
+    <button onclick="manualSync()">ซิงค์เดี๋ยวนี้</button>
   </div>
 
-  <!-- DATE PICKER BAR -->
-  <div class="date-bar">
-    <span class="date-label">📅 วันที่</span>
+  <!-- DATE BAR -->
+  <div class="datebar">
+    <span class="lbl">วันที่</span>
     <input type="date" id="datePicker" onchange="onDateChange()">
-    <button class="today-btn" onclick="goToday()">วันนี้</button>
-    <button class="pull-btn" onclick="pullFromSheet()">📥 ดึงข้อมูลจาก Sheet</button>
-    <span class="editing-badge" id="editingBadge" style="display:none">กำลังแก้ไข</span>
-    <span id="dateLoadStatus" style="font-size:13px; color:var(--gray)"></span>
+    <button class="b-today" onclick="goToday()">วันนี้</button>
+    <button class="b-pull" onclick="pullFromSheet()">⬇ ดึงข้อมูลวันนี้</button>
+    <span id="dateNote" style="font-size:12px;color:var(--gray);margin-left:auto"></span>
   </div>
 
+  <!-- TABS -->
   <div class="tabs">
-    <button class="tab active" data-panel="home">Overview</button>
-    <button class="tab" data-panel="research">Research</button>
-    <button class="tab" data-panel="habits">Habits</button>
-    <button class="tab" data-panel="running">Running</button>
-    <button class="tab" data-panel="reflect">Journal</button>
-    <button class="tab" data-panel="settings">Settings</button>
+    <button class="tab active" data-tab="home" onclick="switchTab('home')">ภาพรวม</button>
+    <button class="tab" data-tab="research" onclick="switchTab('research')">งานวิจัย</button>
+    <button class="tab" data-tab="habits" onclick="switchTab('habits')">วินัยรายวัน</button>
+    <button class="tab" data-tab="running" onclick="switchTab('running')">วิ่ง & ข้อเท้า</button>
+    <button class="tab" data-tab="focus" onclick="switchTab('focus')">โฟกัส</button>
+    <button class="tab" data-tab="reflect" onclick="switchTab('reflect')">สะท้อนผล</button>
+    <button class="tab" data-tab="settings" onclick="switchTab('settings')">ตั้งค่า</button>
   </div>
 
-  <!-- HOME -->
+  <!-- ========== PANEL: HOME (ภาพรวม) ========== -->
   <div class="panel active" id="panel-home">
-    <div class="grid">
-      <div class="card card-tiger col-4">
-        <div class="card-label">⚡ Current Streak</div>
-        <div class="big-stat"><span class="big-stat-num display-font" id="streakNumber">0</span></div>
-        <div style="font-size: 14px; margin-top: 8px;">วันต่อเนื่องที่ check-in</div>
-      </div>
-      <div class="card card-dark col-4">
-        <div class="card-label">📚 Research</div>
-        <div class="big-stat"><span class="big-stat-num display-font" id="researchOverallPct">0%</span></div>
-        <div class="progress-bar"><div class="progress-fill" id="researchOverallBar" style="width:0%"></div></div>
-        <div class="stat-row"><span class="label">บทที่กำลังทำ</span><span class="value" id="currentChapter">บทที่ 1</span></div>
-      </div>
-      <div class="card col-4">
-        <div class="card-label">✓ Today</div>
-        <div class="big-stat"><span class="big-stat-num display-font" id="todayDone">0/5</span></div>
-        <div class="progress-bar"><div class="progress-fill" id="todayBar" style="width:0%"></div></div>
-        <div class="stat-row"><span class="label">เวลาทำวิจัยวันนี้</span><span class="value accent" id="todayResearchTime">0 นาที</span></div>
-      </div>
-      <div class="card col-8">
-        <div class="card-label">🏃 Running Status</div>
-        <div class="card-title">เป้าหมาย: 10K ใน 40 นาที</div>
-        <div class="stat-row"><span class="label">วิ่งล่าสุด</span><span class="value" id="lastRunDate">-</span></div>
-        <div class="stat-row"><span class="label">Pace ล่าสุด</span><span class="value accent" id="lastPace">-</span></div>
-        <div class="stat-row"><span class="label">ครั้งที่วิ่งสะสม</span><span class="value" id="totalRuns">0</span></div>
-      </div>
-      <div class="card col-4">
-        <div class="card-label">💡 This Week</div>
-        <div class="card-title">โฟกัสของสัปดาห์</div>
-        <textarea id="weeklyFocus" rows="4" placeholder="สัปดาห์นี้จะบรรลุอะไร?"></textarea>
-        <button class="btn btn-primary" onclick="saveWeeklyFocus()">บันทึก</button>
-      </div>
-    </div>
-    <div class="highlight-block">
-      <div class="quote-text">Discipline equals freedom.<br>คุณไม่ต้องรอ motivation — สิ่งที่ต้องมีคือระบบที่ดี</div>
-    </div>
-  </div>
+    <div class="quote"><div class="qt" id="quoteText">เริ่มก่อน สมบูรณ์แบบทีหลัง</div></div>
 
-  <!-- RESEARCH -->
-  <div class="panel" id="panel-research">
-    <div class="section-header">
-      <h2>Research<br><span style="color: var(--tiger);">Roadmap.</span></h2>
-      <span class="meta">วิทยฐานะ เชี่ยวชาญ</span>
-    </div>
     <div class="grid">
-      <div class="card col-12">
-        <div class="card-label">หัวข้องานวิจัย</div>
-        <input type="text" id="researchTopic" placeholder="ใส่หัวข้องานวิจัยของคุณ">
-        <button class="btn btn-primary" onclick="saveResearch()">บันทึกหัวข้อ</button>
+      <div class="card card-dark c5">
+        <div class="lbl">⏱ นับถอยหลังสู่วันส่ง</div>
+        <div class="title" style="color:var(--pearl)">7 ตุลาคม 2570</div>
+        <div class="countdown" id="countdownMain"></div>
+        <div style="font-size:12px;color:var(--gray-light);margin-top:14px" id="countdownSub"></div>
       </div>
-      <div class="card col-4">
-        <div class="card-label">บทที่ 01</div>
-        <div class="card-title">บทนำ</div>
-        <div class="checkbox-item" data-key="ch1_problem"><input type="checkbox"> ความเป็นมาและความสำคัญ</div>
-        <div class="checkbox-item" data-key="ch1_objectives"><input type="checkbox"> วัตถุประสงค์ของการวิจัย</div>
-        <div class="checkbox-item" data-key="ch1_questions"><input type="checkbox"> คำถามวิจัย</div>
-        <div class="checkbox-item" data-key="ch1_hypothesis"><input type="checkbox"> สมมติฐานการวิจัย</div>
-        <div class="checkbox-item" data-key="ch1_scope"><input type="checkbox"> ขอบเขตการวิจัย</div>
-        <div class="checkbox-item" data-key="ch1_definitions"><input type="checkbox"> นิยามศัพท์เฉพาะ</div>
-        <div class="checkbox-item" data-key="ch1_benefits"><input type="checkbox"> ประโยชน์ที่คาดว่าจะได้รับ</div>
-      </div>
-      <div class="card col-4">
-        <div class="card-label">บทที่ 02</div>
-        <div class="card-title">ทบทวนวรรณกรรม</div>
-        <div class="checkbox-item" data-key="ch2_concept"><input type="checkbox"> แนวคิดทฤษฎีหลัก</div>
-        <div class="checkbox-item" data-key="ch2_related"><input type="checkbox"> งานวิจัย (ในประเทศ)</div>
-        <div class="checkbox-item" data-key="ch2_intl"><input type="checkbox"> งานวิจัย (ต่างประเทศ)</div>
-        <div class="checkbox-item" data-key="ch2_framework"><input type="checkbox"> กรอบแนวคิดการวิจัย</div>
-      </div>
-      <div class="card col-4">
-        <div class="card-label">บทที่ 03</div>
-        <div class="card-title">ระเบียบวิธีวิจัย</div>
-        <div class="checkbox-item" data-key="ch3_design"><input type="checkbox"> รูปแบบการวิจัย</div>
-        <div class="checkbox-item" data-key="ch3_population"><input type="checkbox"> ประชากรและกลุ่มตัวอย่าง</div>
-        <div class="checkbox-item" data-key="ch3_instruments"><input type="checkbox"> เครื่องมือที่ใช้</div>
-        <div class="checkbox-item" data-key="ch3_collect"><input type="checkbox"> การเก็บรวบรวมข้อมูล</div>
-        <div class="checkbox-item" data-key="ch3_analysis"><input type="checkbox"> การวิเคราะห์ข้อมูล</div>
-      </div>
-      <div class="card col-6">
-        <div class="card-label">⏱️ Time Log</div>
-        <div class="card-title">บันทึกเวลาทำวิจัย</div>
-        <label class="field-label">จำนวนนาที</label>
-        <input type="number" id="researchMinutes" placeholder="30" min="0">
-        <label class="field-label">บันทึก (สั้นๆ)</label>
-        <input type="text" id="researchNote" placeholder="ทำอะไรไป">
-        <button class="btn btn-tiger" onclick="logResearch()">บันทึก Session</button>
-        <div id="researchLog" style="margin-top:20px"></div>
-      </div>
-      <div class="card col-6">
-        <div class="card-label">📄 Papers Read</div>
-        <div class="card-title">บันทึก Papers ที่อ่าน</div>
-        <label class="field-label">ชื่อ paper / ผู้วิจัย</label>
-        <input type="text" id="paperTitle" placeholder="ชื่อ paper">
-        <label class="field-label">รอบการอ่าน</label>
-        <select id="paperRound">
-          <option value="scan">รอบที่ 1: Scan (5-10 นาที)</option>
-          <option value="read">รอบที่ 2: Read (20-30 นาที)</option>
-          <option value="deep">รอบที่ 3: Deep Read (45+ นาที)</option>
-        </select>
-        <label class="field-label">ประเด็นสำคัญ</label>
-        <textarea id="paperNote" rows="2" placeholder="key insights"></textarea>
-        <button class="btn btn-tiger" onclick="logPaper()">บันทึก Paper</button>
-        <div id="paperLog" style="margin-top:20px"></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- HABITS -->
-  <div class="panel" id="panel-habits">
-    <div class="section-header">
-      <h2>Daily<br><span style="color: var(--tiger);">Habits.</span></h2>
-      <span class="meta">5 commitments</span>
-    </div>
-    <div class="grid">
-      <div class="card col-8">
-        <div class="card-label">วันนี้</div>
-        <div class="card-title">ทำอะไรไปแล้วบ้าง</div>
-        <div class="checkbox-item" data-habit="meditation"><input type="checkbox"> 🧘 สมาธิ 10 นาที (เช้า)</div>
-        <div class="checkbox-item" data-habit="reading"><input type="checkbox"> 📖 อ่านหนังสือ 20 นาที</div>
-        <div class="checkbox-item" data-habit="english"><input type="checkbox"> 🌍 ฝึกภาษาอังกฤษ</div>
-        <div class="checkbox-item" data-habit="exercise"><input type="checkbox"> 🏃 ออกกำลังกาย</div>
-        <div class="checkbox-item" data-habit="research"><input type="checkbox"> 📚 ทำวิจัยอย่างน้อย 30 นาที <span class="badge badge-tiger">Priority</span></div>
+      <div class="card c4">
+        <div class="lbl">🔬 ความคืบหน้างานวิจัย</div>
+        <div class="bignum sm" id="researchPct">0%</div>
+        <div class="bar"><div class="fill" id="researchPctBar" style="width:0%"></div></div>
+        <div style="font-size:13px;color:var(--gray);margin-top:8px" id="researchPhaseNow">ระยะ R1 · ศึกษาสภาพปัจจุบัน</div>
       </div>
-      <div class="card card-dark col-4">
-        <div class="card-label">📊 Last 7 Days</div>
-        <div class="card-title">ความถี่</div>
-        <div id="weeklyStats" style="margin-top: 16px;"></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- RUNNING -->
-  <div class="panel" id="panel-running">
-    <div class="section-header">
-      <h2>Running<br><span style="color: var(--tiger);">10K / 40min.</span></h2>
-      <span class="meta">post-surgery comeback</span>
-    </div>
-    <div class="grid">
-      <div class="card col-6">
-        <div class="card-label">📝 Log Run</div>
-        <div class="card-title">บันทึกการวิ่ง</div>
-        <p style="font-size:13px; color:var(--gray); margin-bottom:16px">หลังผ่าตัดข้อเท้า ต.ค. 68 — ค่อยๆ ไป เป้าหมาย 5-6 เดือน</p>
-        <label class="field-label">ระยะทาง (กม.)</label>
-        <input type="number" id="runDistance" placeholder="5.0" step="0.1">
-        <label class="field-label">Pace</label>
-        <input type="text" id="runPace" placeholder="5:30">
-        <label class="field-label">ระยะเวลา (นาที)</label>
-        <input type="number" id="runMinutes" placeholder="30">
-        <label class="field-label">ความรู้สึก / อาการข้อเท้า</label>
-        <textarea id="runNote" rows="2"></textarea>
-        <button class="btn btn-tiger" onclick="logRun()">บันทึก Run</button>
-      </div>
-      <div class="card col-6">
-        <div class="card-label">📅 History</div>
-        <div class="card-title">ประวัติการวิ่ง</div>
-        <div id="runHistory" style="margin-top: 16px;"></div>
-      </div>
-      <div class="col-12">
-        <div class="phase-indicator" id="currentPhase">ลองบันทึกการวิ่งสัก 2-3 ครั้ง</div>
+      <div class="card card-tiger c3">
+        <div class="lbl">🔥 วินัยวันนี้</div>
+        <div class="bignum sm" id="homeHabitScore">0/5</div>
+        <div style="font-size:13px;margin-top:8px" id="homeStreakLine">streak รวม: 0 วัน</div>
       </div>
     </div>
-  </div>
 
-  <!-- REFLECT -->
-  <div class="panel" id="panel-reflect">
-    <div class="section-header">
-      <h2>Daily<br><span style="color: var(--tiger);">Journal.</span></h2>
-      <span class="meta">3 questions</span>
-    </div>
     <div class="grid">
-      <div class="card col-6">
-        <div class="card-label">✍️ Today's Reflection</div>
-        <label class="field-label">✨ วันนี้สำเร็จอะไร (Win)</label>
-        <textarea id="reflectWin" rows="2"></textarea>
-        <label class="field-label">🌧️ อะไรท้าทาย (Challenge)</label>
-        <textarea id="reflectChallenge" rows="2"></textarea>
-        <label class="field-label">🎯 พรุ่งนี้จะปรับอะไร (Next)</label>
-        <textarea id="reflectNext" rows="2"></textarea>
-        <button class="btn btn-primary" onclick="saveReflection()">บันทึก Reflection</button>
+      <div class="card c4">
+        <div class="lbl">🏃 การวิ่ง</div>
+        <div class="row"><span class="k">Phase ปัจจุบัน</span><span class="v ac" id="homeRunPhase">A</span></div>
+        <div class="row"><span class="k">สัปดาห์</span><span class="v" id="homeRunWeek">—</span></div>
+        <div class="row"><span class="k">ระยะรวมสัปดาห์นี้</span><span class="v" id="homeRunKm">0 กม.</span></div>
       </div>
-      <div class="card col-6">
-        <div class="card-label">📔 Past Entries</div>
-        <div class="card-title">บันทึกย้อนหลัง</div>
-        <div id="reflectionHistory" style="margin-top:16px"></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- SETTINGS -->
-  <div class="panel" id="panel-settings">
-    <div class="section-header">
-      <h2>System<br><span style="color: var(--tiger);">Settings.</span></h2>
-      <span class="meta">sync & backup</span>
+      <div class="card c4">
+        <div class="lbl">📅 วันนี้ต้องทำ</div>
+        <div id="homeTodoList" style="font-size:14px"></div>
+      </div>
+
+      <div class="card c4">
+        <div class="lbl">⚡ เริ่มเร็ว</div>
+        <button class="btn btn-tiger" style="width:100%;margin-bottom:9px;justify-content:center" onclick="switchTab('focus');startPomo()">▶ เริ่ม Pomodoro 25 นาที</button>
+        <button class="btn btn-out" style="width:100%;margin-bottom:9px;justify-content:center" onclick="switchTab('research')">🔬 ไปทำงานวิจัย</button>
+        <button class="btn btn-ink" style="width:100%;justify-content:center" onclick="copyForClaude()">📋 Copy ข้อมูลส่ง Claude</button>
+      </div>
     </div>
+
     <div class="grid">
-      <div class="card col-12 card-tiger">
-        <div class="card-label">🔗 Google Sheets Sync (v2 — Read + Write)</div>
-        <div class="card-title">ตั้งค่าการ sync 2 ทาง</div>
-        <div style="background:rgba(0,0,0,0.12); padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; line-height:1.5">
-          ⚠️ <strong>ต้องใช้ Apps Script v2</strong> (ไฟล์ google_apps_script_v2.gs)<br>
-          ⚠️ ต้อง <strong>Re-deploy แบบ New version</strong> หลังเปลี่ยน code<br>
-          ⚠️ <strong>เปิดผ่าน GitHub Pages</strong> (artifact ใช้ไม่ได้)
+      <div class="card c12" style="border-color:var(--tiger)">
+        <div class="lbl">💡 ทำแค่อย่างเดียวก็ยังดี</div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px;font-size:14px;color:var(--gray)">วันที่ไม่ไหว ไม่ต้องทำทุกอย่าง — เลือกทำแค่ 1 อย่างให้สำเร็จ ดีกว่าไม่ทำเลย แล้ว streak จะไม่ขาด</div>
+          <button class="btn btn-tiger" onclick="markMinimumDay()">✓ วันนี้ทำขั้นต่ำแล้ว</button>
         </div>
-        <label class="field-label" style="color:var(--ink)">Web App URL</label>
-        <input type="url" id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec" style="background:white">
-        <button class="btn btn-primary" onclick="saveApiUrl()">เชื่อมต่อ</button>
-        <button class="btn btn-outline" onclick="testConnection()" style="margin-left:8px; background:white">ทดสอบ อ่าน+เขียน</button>
-        <button class="btn btn-outline" onclick="loadAllFromSheet()" style="margin-left:8px; background:white">📥 โหลดทั้งหมดจาก Sheet</button>
-        <div id="connectionStatus" style="margin-top:12px; font-size:13px"></div>
       </div>
-      
-      <div class="card col-6">
-        <div class="card-label">💾 Local Backup</div>
-        <div class="card-title">Export/Import ข้อมูล</div>
-        <p style="font-size:13px; color:var(--gray); margin-bottom:16px">
-          แม้จะ sync กับ Sheets แล้ว ก็ควร export เก็บไว้สำรอง
-        </p>
-        <button class="btn btn-primary" onclick="exportData()">📥 Export JSON</button>
-        <label class="field-label" style="margin-top: 20px">Import กลับ</label>
-        <input type="file" id="importFile" accept=".json" style="padding:12px">
-        <button class="btn btn-outline" onclick="importData()">Import</button>
+    </div>
+  </div>
+
+  <!-- ========== PANEL: RESEARCH (งานวิจัย) ========== -->
+  <div class="panel" id="panel-research">
+    <div class="sechead">
+      <h2 class="display">งานวิจัย</h2>
+      <span class="meta">R&D · 4 ระยะ</span>
+    </div>
+
+    <div class="card card-dark c12" style="margin-bottom:14px">
+      <div class="lbl">หัวข้อวิจัย</div>
+      <div style="font-size:16px;line-height:1.5;color:var(--pearl)" id="researchTopic">การพัฒนารูปแบบการนิเทศภายในสถานศึกษาขนาดเล็กบนฐานดิจิทัลแพลตฟอร์ม เพื่อพัฒนาศักยภาพการจัดการเรียนรู้เชิงรุกของครู และพัฒนาคุณลักษณะอันพึงประสงค์ด้านการใฝ่เรียนรู้ของนักเรียน โรงเรียนบ้านโปงทุ่ง</div>
+    </div>
+
+    <!-- R&D Phase Stepper -->
+    <div class="lbl" style="margin-bottom:10px">📊 ความคืบหน้าตามระยะ R&D (กดที่ระยะเพื่อดูงานย่อย)</div>
+    <div class="stepper" id="phaseStepper"></div>
+
+    <!-- งานย่อยของ phase ที่เลือก -->
+    <div class="card c12" style="margin-bottom:14px">
+      <div class="title" id="phaseTitle">ระยะ R1 · ศึกษาสภาพปัจจุบัน</div>
+      <div style="font-size:13px;color:var(--gray);margin-bottom:14px" id="phaseDesc"></div>
+      <div id="phaseTasks"></div>
+    </div>
+
+    <!-- บท 1-5 -->
+    <div class="lbl" style="margin-bottom:10px">📖 ความคืบหน้าตามบท (1-5)</div>
+    <div class="grid" id="chaptersGrid"></div>
+
+    <!-- Time log -->
+    <div class="grid">
+      <div class="card c6">
+        <div class="lbl">⏱ บันทึกเวลาทำวิจัยวันนี้</div>
+        <label class="flbl">จำนวนนาที</label>
+        <input type="number" id="researchMinutes" placeholder="เช่น 45">
+        <label class="flbl">บันทึก (ทำอะไรไป)</label>
+        <textarea id="researchNote" rows="2" placeholder="เช่น อ่าน paper เรื่องการนิเทศ 3 เรื่อง"></textarea>
+        <button class="btn btn-ink" onclick="logResearch()">บันทึกเวลา</button>
+        <div style="margin-top:14px" id="researchLog"></div>
       </div>
-      
-      <div class="card card-dark col-6">
-        <div class="card-label">🔄 Full Sync</div>
-        <div class="card-title">Sync ข้อมูลทั้งหมดขึ้น Sheets</div>
-        <p style="font-size:13px; color:var(--gray-light); margin-bottom:16px">
-          ใช้เมื่อ:<br>
-          • ตั้งค่า Sheets ครั้งแรก<br>
-          • ย้ายเครื่องใหม่<br>
-          • ข้อมูลใน Sheets ไม่ครบ
-        </p>
-        <button class="btn btn-tiger" onclick="syncAllData()">🔄 Sync ทั้งหมด</button>
-        <div id="fullSyncStatus" style="margin-top:12px; font-size:13px"></div>
+
+      <div class="card c6">
+        <div class="lbl">📚 บันทึก Paper ที่อ่าน</div>
+        <label class="flbl">ชื่อเรื่อง</label>
+        <input type="text" id="paperTitle" placeholder="ชื่องานวิจัย">
+        <label class="flbl">รอบการอ่าน</label>
+        <select id="paperRound">
+          <option value="Scan">Scan (สำรวจ)</option>
+          <option value="Read">Read (อ่านจริง)</option>
+          <option value="Deep">Deep (เจาะลึก)</option>
+        </select>
+        <label class="flbl">โน้ตสั้นๆ</label>
+        <textarea id="paperNote" rows="2" placeholder="ประเด็นสำคัญ / ใช้อ้างบทไหน"></textarea>
+        <button class="btn btn-ink" onclick="logPaper()">บันทึก Paper</button>
+        <div style="margin-top:14px" id="paperLog"></div>
       </div>
-      
-      <div class="card col-12" style="border-color: var(--ink);">
-        <div class="card-label">⚠️ Danger Zone</div>
-        <div class="card-title">Reset ข้อมูลในเครื่อง</div>
-        <p style="font-size:13px; color:var(--gray); margin: 12px 0 20px">
-          ลบข้อมูลใน localStorage ของเครื่องนี้ (ไม่กระทบข้อมูลใน Sheets)
-        </p>
-        <button class="btn btn-danger" onclick="resetData()">🗑️ Reset Local</button>
+    </div>
+  </div>
+
+  <!-- ========== PANEL: HABITS (วินัยรายวัน) ========== -->
+  <div class="panel" id="panel-habits">
+    <div class="sechead">
+      <h2 class="display">วินัยรายวัน</h2>
+      <span class="meta" id="habitPhaseLabel">ช่วงปกติ</span>
+    </div>
+
+    <div class="grid">
+      <div class="card c8">
+        <div class="lbl">✅ ต้องทำ (Core)</div>
+        <div id="habitCore"></div>
+        <div class="lbl" style="margin-top:20px">⭐ ถ้ามีเวลา (Bonus)</div>
+        <div id="habitBonus"></div>
+      </div>
+
+      <div class="card card-dark c4">
+        <div class="lbl">📊 สรุปวันนี้</div>
+        <div class="bignum sm" id="habitScoreBig" style="color:var(--pearl)">0/5</div>
+        <div class="bar"><div class="fill" id="habitScoreBar" style="width:0%"></div></div>
+        <div style="margin-top:18px">
+          <div class="row"><span class="k">ทำครบ core</span><span class="v ac" id="habitCoreStatus">—</span></div>
+          <div class="row"><span class="k">streak ยาวสุด</span><span class="v" id="habitMaxStreak">0 วัน</span></div>
+        </div>
+        <div style="font-size:11px;color:var(--gray-light);margin-top:14px;line-height:1.5">หมายเหตุ: streak นับแยกแต่ละกิจวัตร · ทำ core ครบ = วันนั้นสมบูรณ์</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PANEL: RUNNING (วิ่ง & ข้อเท้า) ========== -->
+  <div class="panel" id="panel-running">
+    <div class="sechead">
+      <h2 class="display">วิ่ง & ข้อเท้า</h2>
+      <span class="meta">เป้า: 10K Sub-40</span>
+    </div>
+
+    <div class="grid">
+      <div class="card card-tiger c12" style="margin-bottom:0">
+        <div class="lbl">📍 สถานะแผนวิ่งตอนนี้</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:baseline">
+          <div><span style="font-size:13px;opacity:0.7">Phase</span><div style="font-family:'Bai Jamjuree';font-size:32px;font-weight:700" id="runPhaseNow">A</div></div>
+          <div><span style="font-size:13px;opacity:0.7">สัปดาห์</span><div style="font-family:'Bai Jamjuree';font-size:32px;font-weight:700" id="runWeekNow">W1</div></div>
+          <div style="flex:1;min-width:200px"><span style="font-size:13px;opacity:0.7">โฟกัสสัปดาห์นี้</span><div style="font-size:15px;font-weight:600;margin-top:4px" id="runWeekFocus">สร้างฐาน + ฟื้นฟูข้อเท้า</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Ankle rehab checklist -->
+      <div class="card c5" style="border-color:var(--tiger)">
+        <div class="lbl">🦵 Ankle Rehab วันนี้ (สำคัญ!)</div>
+        <div id="rehabList"></div>
+        <div style="font-size:11px;color:var(--gray);margin-top:10px;line-height:1.5">⭐ = ท่ากันพลิก ทำให้ดีที่สุด · ทำ 3-4 ครั้ง/สัปดาห์</div>
+      </div>
+
+      <!-- Log run -->
+      <div class="card c7">
+        <div class="lbl">🏃 บันทึกการวิ่งวันนี้</div>
+        <div class="grid" style="gap:9px;margin-bottom:0">
+          <div class="c6"><label class="flbl">ระยะ (กม.)</label><input type="number" id="runDist" placeholder="0" step="0.1"></div>
+          <div class="c6"><label class="flbl">เวลา (นาที)</label><input type="number" id="runMin" placeholder="0"></div>
+          <div class="c6"><label class="flbl">Pace (นาที/กม.)</label><input type="text" id="runPace" placeholder="เช่น 5:30"></div>
+          <div class="c6"><label class="flbl">ประเภท</label>
+            <select id="runType">
+              <option value="Easy">Easy</option>
+              <option value="Interval">Interval</option>
+              <option value="Tempo">Tempo</option>
+              <option value="Cruise">Cruise</option>
+              <option value="Fartlek">Fartlek</option>
+              <option value="Long">Long Run</option>
+              <option value="Cross">Cross-training</option>
+            </select>
+          </div>
+        </div>
+        <label class="flbl">อาการข้อเท้า (เลือก)</label>
+        <select id="ankleStatus">
+          <option value="ดี">😊 ดี ไม่เจ็บ</option>
+          <option value="ตึงเล็กน้อย">😐 ตึงเล็กน้อย</option>
+          <option value="เจ็บนิดหน่อย">😟 เจ็บนิดหน่อย</option>
+          <option value="เจ็บ-บวม">🛑 เจ็บ/บวม (ต้องพัก)</option>
+        </select>
+        <label class="flbl">โน้ต</label>
+        <input type="text" id="runNote" placeholder="ความรู้สึก / สภาพอากาศ">
+        <button class="btn btn-ink" onclick="logRun()">บันทึกการวิ่ง</button>
+        <div id="ankleWarn" style="display:none;margin-top:12px;padding:12px;background:#fdecea;border-radius:10px;color:#c0392b;font-size:13px;font-weight:600"></div>
+        <div style="margin-top:14px" id="runHistory"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PANEL: FOCUS (Pomodoro) ========== -->
+  <div class="panel" id="panel-focus">
+    <div class="sechead">
+      <h2 class="display">โฟกัส</h2>
+      <span class="meta">Pomodoro · สู้สมาธิหลุด</span>
+    </div>
+
+    <div class="grid">
+      <div class="card card-dark c6">
+        <div class="lbl">⏱ Pomodoro Timer</div>
+        <div class="pomo">
+          <div class="pomo-time" id="pomoTime">25:00</div>
+          <div class="pomo-state" id="pomoState">พร้อมเริ่ม</div>
+          <div class="pomo-controls">
+            <button class="btn btn-tiger" id="pomoStart" onclick="startPomo()">▶ เริ่ม</button>
+            <button class="btn btn-out" id="pomoPause" onclick="pausePomo()" style="color:var(--pearl);border-color:var(--pearl)">⏸ หยุดชั่วคราว</button>
+            <button class="btn btn-out" onclick="resetPomo()" style="color:var(--pearl);border-color:var(--pearl)">↺ รีเซ็ต</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card c6">
+        <div class="lbl">🍅 รอบโฟกัสวันนี้</div>
+        <div class="bignum" id="pomoCount">0</div>
+        <div style="font-size:13px;color:var(--gray)">รอบที่ทำสำเร็จ (25 นาที/รอบ)</div>
+        <div style="margin-top:18px">
+          <button class="btn btn-out" onclick="setPomoMode(25)">โฟกัส 25 นาที</button>
+          <button class="btn btn-out" onclick="setPomoMode(5)">พัก 5 นาที</button>
+        </div>
+        <div style="margin-top:18px;font-size:13px;color:var(--gray);line-height:1.6">
+          <strong>เทคนิค:</strong> ตั้งเวลา 25 นาที โฟกัสงานเดียว วางมือถือไว้ไกลตัว เมื่อครบให้พัก 5 นาที ทำ 4 รอบแล้วพักยาว
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card card-tiger c12">
+        <div class="lbl">🎯 ถ้าได้วิทยฐานะเชี่ยวชาญ...</div>
+        <div id="visionBoard"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PANEL: REFLECT (สะท้อนผล) ========== -->
+  <div class="panel" id="panel-reflect">
+    <div class="sechead">
+      <h2 class="display">สะท้อนผล</h2>
+      <span class="meta">Weekly Review ทุกศุกร์</span>
+    </div>
+
+    <div class="grid">
+      <div class="card c7">
+        <div class="lbl">📝 บันทึกสะท้อนผลวันนี้</div>
+        <label class="flbl">✨ วันนี้ทำอะไรได้ดี</label>
+        <textarea id="reflectWin" rows="2" placeholder="ความสำเร็จเล็กๆ ก็นับ"></textarea>
+        <label class="flbl">🌧️ อุปสรรค/สิ่งที่ยาก</label>
+        <textarea id="reflectChallenge" rows="2" placeholder="อะไรที่ติดขัด"></textarea>
+        <label class="flbl">🎯 พรุ่งนี้จะทำอะไร</label>
+        <textarea id="reflectNext" rows="2" placeholder="เป้าหมายพรุ่งนี้"></textarea>
+        <button class="btn btn-ink" onclick="saveReflection()">บันทึก</button>
+      </div>
+
+      <div class="card card-dark c5">
+        <div class="lbl">📊 สรุปสัปดาห์ (ส่ง Claude)</div>
+        <div style="font-size:13px;color:var(--gray-light);margin-bottom:14px">กดเพื่อสร้างสรุปสัปดาห์ แล้ว copy ไปวางให้ Claude วิเคราะห์ทุกศุกร์เย็น</div>
+        <button class="btn btn-tiger" style="width:100%;justify-content:center;margin-bottom:9px" onclick="generateWeeklySummary()">📈 สร้างสรุปสัปดาห์</button>
+        <button class="btn btn-out" style="width:100%;justify-content:center;color:var(--pearl);border-color:var(--pearl)" onclick="copyForClaude()">📋 Copy ข้อมูลทั้งหมด</button>
+        <div id="weeklySummaryBox" style="margin-top:14px;font-size:13px;white-space:pre-wrap;display:none;background:rgba(255,255,255,0.06);padding:14px;border-radius:10px;max-height:300px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <div class="card c12">
+      <div class="lbl">📖 ประวัติการสะท้อนผล</div>
+      <div id="reflectionHistory"></div>
+    </div>
+  </div>
+
+  <!-- ========== PANEL: SETTINGS (ตั้งค่า) ========== -->
+  <div class="panel" id="panel-settings">
+    <div class="sechead">
+      <h2 class="display">ตั้งค่า</h2>
+      <span class="meta">เชื่อมต่อ & ข้อมูล</span>
+    </div>
+
+    <div class="grid">
+      <div class="card c7">
+        <div class="lbl">🔗 เชื่อมต่อ Google Sheet</div>
+        <div style="font-size:13px;color:var(--gray);margin-bottom:12px">วาง URL ของ Apps Script (Web App) เพื่อซิงค์ข้อมูลขึ้น Google Sheet</div>
+        <label class="flbl">Apps Script URL</label>
+        <input type="url" id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ink" onclick="saveApiUrl()">บันทึก URL</button>
+          <button class="btn btn-out" onclick="testConnection()">ทดสอบการเชื่อมต่อ</button>
+        </div>
+        <div id="connTest" style="margin-top:12px;font-size:13px"></div>
+      </div>
+
+      <div class="card c5">
+        <div class="lbl">💾 ข้อมูล</div>
+        <button class="btn btn-out" style="width:100%;justify-content:center;margin-bottom:9px" onclick="manualSync()">⬆ ซิงค์ทั้งหมดขึ้น Sheet</button>
+        <button class="btn btn-out" style="width:100%;justify-content:center;margin-bottom:9px" onclick="loadAllFromSheet()">⬇ ดึงทั้งหมดจาก Sheet</button>
+        <button class="btn btn-out" style="width:100%;justify-content:center;margin-bottom:9px" onclick="exportData()">📤 Export สำรองข้อมูล (.json)</button>
+        <label class="btn btn-out" style="width:100%;justify-content:center;margin-bottom:9px;cursor:pointer">📥 Import ข้อมูล<input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none"></label>
+        <button class="btn btn-dang" style="width:100%;justify-content:center" onclick="resetData()">🗑 ล้างข้อมูลทั้งหมด</button>
+      </div>
+    </div>
+
+    <div class="card c12">
+      <div class="lbl">ℹ️ เกี่ยวกับ</div>
+      <div style="font-size:13px;color:var(--gray);line-height:1.6">
+        Dashboard v8 · ระบบติดตามการพัฒนาตนเองและงานวิจัย<br>
+        ข้อมูลเก็บใน localStorage ของเบราว์เซอร์ + ซิงค์ Google Sheet<br>
+        <strong>เปิดไฟล์นี้ผ่าน GitHub Pages หรือเปิดไฟล์ตรงๆ</strong> (การซิงค์ไม่ทำงานในหน้าตัวอย่าง Artifact)
       </div>
     </div>
   </div>
 
 </div>
-
 <script>
-  const today = new Date();
-  document.getElementById('todayDate').textContent = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
-  document.getElementById('todayDay').textContent = today.toLocaleDateString('th-TH', { weekday: 'long' });
-  const realTodayKey = today.toISOString().split('T')[0];
-  
-  // selectedDate = วันที่กำลังดู/แก้ไข (เปลี่ยนได้ผ่าน date picker)
-  let todayKey = realTodayKey;
-  
-  // ตั้งค่า date picker เริ่มต้น = วันนี้
-  document.getElementById('datePicker').value = realTodayKey;
-  document.getElementById('datePicker').max = realTodayKey; // ห้ามเลือกอนาคต
-  
-  function onDateChange() {
-    todayKey = document.getElementById('datePicker').value;
-    const isToday = (todayKey === realTodayKey);
-    document.getElementById('editingBadge').style.display = isToday ? 'none' : 'inline-block';
-    // โหลดข้อมูลของวันที่เลือกจาก localStorage
-    reloadAllForDate();
-    // ถ้าเชื่อม Sheet แล้ว → ดึงจาก Sheet ด้วย
-    if (getApiUrl()) {
-      pullFromSheet();
-    }
-  }
-  
-  function goToday() {
-    document.getElementById('datePicker').value = realTodayKey;
-    onDateChange();
-  }
-  
-  // โหลดข้อมูลทุก section ใหม่ตาม todayKey ปัจจุบัน
-  function reloadAllForDate() {
-    // Habits — reset checkboxes ตามวันที่เลือก
-    const habitData = getStore('habits_' + todayKey, {});
-    document.querySelectorAll('[data-habit]').forEach(item => {
-      const h = item.dataset.habit;
-      const cb = item.querySelector('input');
-      cb.checked = !!habitData[h];
-      if (cb.checked) item.classList.add('done'); else item.classList.remove('done');
-    });
-    updateHabitsSummary();
-    
-    // Research/Reflection ของวันนั้น → เติมในฟอร์ม (ถ้ามี)
-    loadDayIntoForms();
-    
-    updateTodayResearchTime();
-  }
-  
-  // เติมข้อมูลของวันที่เลือกลงในฟอร์ม (เพื่อแก้ไข)
-  function loadDayIntoForms() {
-    // Research (วันนั้น)
-    const researchLog = getStore('research_log', []);
-    const todayResearch = researchLog.find(e => e.date === todayKey);
-    if (todayResearch) {
-      document.getElementById('researchMinutes').value = todayResearch.minutes || '';
-      document.getElementById('researchNote').value = todayResearch.note || '';
-    } else {
-      document.getElementById('researchMinutes').value = '';
-      document.getElementById('researchNote').value = '';
-    }
-    
-    // Reflection (วันนั้น)
-    const reflLog = getStore('reflection_log', []);
-    const todayRefl = reflLog.find(e => e.date === todayKey);
-    if (todayRefl) {
-      document.getElementById('reflectWin').value = todayRefl.win || '';
-      document.getElementById('reflectChallenge').value = todayRefl.challenge || '';
-      document.getElementById('reflectNext').value = todayRefl.next || '';
-    } else {
-      document.getElementById('reflectWin').value = '';
-      document.getElementById('reflectChallenge').value = '';
-      document.getElementById('reflectNext').value = '';
-    }
-    
-    // Run (วันนั้น)
-    const runLog = getStore('run_log', []);
-    const todayRun = runLog.find(e => e.date === todayKey);
-    if (todayRun) {
-      document.getElementById('runDistance').value = todayRun.distance || '';
-      document.getElementById('runPace').value = todayRun.pace || '';
-      document.getElementById('runMinutes').value = todayRun.minutes || '';
-      document.getElementById('runNote').value = todayRun.note || '';
-    } else {
-      ['runDistance','runPace','runMinutes','runNote'].forEach(id => document.getElementById(id).value = '');
-    }
-  }
+// ============ CONFIG & STATE ============
+const PREFIX = 'nitipong_dashboard_';
+let currentDate = new Date();
+let todayKey = fmtDate(currentDate);
 
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
-    });
-  });
+// วันส่งวิทยฐานะ + วันเริ่มแผนวิ่ง
+const DEADLINE = new Date('2027-10-07T00:00:00');
+const RUN_START = new Date('2026-06-08T00:00:00');
 
-  const PREFIX = 'nitipong_dashboard_';
-  function getStore(key, def = null) {
-    try { const v = localStorage.getItem(PREFIX + key); return v ? JSON.parse(v) : def; }
-    catch { return def; }
-  }
-  function setStore(key, val) {
-    try { localStorage.setItem(PREFIX + key, JSON.stringify(val)); return true; }
-    catch (e) { alert('บันทึกไม่ได้: ' + e.message); return false; }
-  }
+// R&D Phases + งานย่อย
+const PHASES = [
+  { id:'R1', name:'ระยะ R1 · ศึกษาสภาพปัจจุบัน', start:'2026-06', end:'2026-07',
+    desc:'ศึกษาสภาพ ปัญหา และความต้องการการนิเทศภายในของโรงเรียน',
+    tasks:['ทบทวนวรรณกรรมการนิเทศ','สร้างแบบสอบถามสภาพปัจจุบัน','เก็บข้อมูลครู  6-10 คน','วิเคราะห์ปัญหา/ความต้องการ','สรุปผล R1'] },
+  { id:'D1', name:'ระยะ D1 · พัฒนารูปแบบ', start:'2026-08', end:'2026-10',
+    desc:'สังเคราะห์และสร้างรูปแบบการนิเทศบนดิจิทัลแพลตฟอร์ม + ตรวจ IOC',
+    tasks:['สังเคราะห์รูปแบบจากคลังงานวิจัย','ออกแบบรูปแบบ 4 ขั้น','สร้างคู่มือ/แพลตฟอร์ม','ผู้เชี่ยวชาญตรวจ IOC','ปรับแก้รูปแบบ'] },
+  { id:'R2', name:'ระยะ R2 · ทดลองใช้', start:'2026-11', end:'2027-09',
+    desc:'ทดลองใช้รูปแบบ 1 ปีการศึกษา เก็บข้อมูลครู (active learning) + นักเรียน (ใฝ่เรียนรู้)',
+    tasks:['อบรมครูใช้แพลตฟอร์ม','นิเทศตามรูปแบบ (ต่อเนื่อง)','สังเกตการสอน active learning','วัดการใฝ่เรียนรู้นักเรียน ป.1-6','เก็บข้อมูลรายเทอม'] },
+  { id:'D2', name:'ระยะ D2 · ประเมิน & ปรับปรุง', start:'2027-09', end:'2027-10',
+    desc:'ประเมินผลรูปแบบ ปรับปรุง และเขียนสรุปผลการวิจัย',
+    tasks:['วิเคราะห์ข้อมูลผล','ประเมินความพึงพอใจ','ปรับปรุงรูปแบบสุดท้าย','เขียนบท 4-5','เตรียมส่งวิทยฐานะ'] },
+];
 
-  // ============ GOOGLE SHEETS SYNC ============
-  function getApiUrl() { return getStore('api_url', ''); }
-  function setSyncStatus(state, text) {
-    const dot = document.getElementById('syncDot');
-    const status = document.getElementById('syncStatus');
-    dot.className = 'sync-dot ' + state;
-    status.textContent = text;
-  }
-  
-  async function sendToSheets(type, payload) {
-    const url = getApiUrl();
-    if (!url) return { success: false, skipped: true };
-    
-    setSyncStatus('syncing', 'กำลัง sync...');
-    try {
-      // ใช้ text/plain เพื่อหลีกเลี่ยง CORS preflight
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ type, payload }),
-        redirect: 'follow'
-      });
-      const result = await res.json();
-      if (result.success) {
-        setSyncStatus('connected', '✓ Synced · ' + new Date().toLocaleTimeString('th-TH'));
-      } else {
-        setSyncStatus('error', '⚠️ ' + (result.error || 'sync ไม่สำเร็จ'));
-      }
-      return result;
-    } catch (e) {
-      setSyncStatus('error', '⚠️ Sync error: ' + e.message);
-      // เก็บ queue retry
-      const failed = getStore('failed_sync', []);
-      failed.push({ type, payload, time: new Date().toISOString() });
-      setStore('failed_sync', failed.slice(-50));
-      return { success: false, error: e.message };
-    }
-  }
-  
-  // อ่านข้อมูลจาก Sheet ผ่าน JSONP (ข้าม CORS)
-  function readFromSheetJSONP(action, params = {}) {
-    return new Promise((resolve, reject) => {
-      const url = getApiUrl();
-      if (!url) { reject(new Error('ยังไม่ได้ตั้งค่า URL')); return; }
-      
-      const callbackName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-      const timeout = setTimeout(() => {
-        delete window[callbackName];
-        if (script.parentNode) script.parentNode.removeChild(script);
-        reject(new Error('Timeout — Sheet ไม่ตอบใน 15 วิ'));
-      }, 15000);
-      
-      window[callbackName] = (data) => {
-        clearTimeout(timeout);
-        delete window[callbackName];
-        if (script.parentNode) script.parentNode.removeChild(script);
-        resolve(data);
-      };
-      
-      const queryParams = new URLSearchParams({ action, callback: callbackName, ...params });
-      const script = document.createElement('script');
-      script.src = url + '?' + queryParams.toString();
-      script.onerror = () => {
-        clearTimeout(timeout);
-        delete window[callbackName];
-        if (script.parentNode) script.parentNode.removeChild(script);
-        reject(new Error('โหลดไม่สำเร็จ — เช็ค URL / deployment'));
-      };
-      document.body.appendChild(script);
-    });
-  }
-  
-  // ดึงข้อมูลของวันที่เลือกจาก Sheet มาแสดง
-  async function pullFromSheet() {
-    const url = getApiUrl();
-    if (!url) { 
-      document.getElementById('dateLoadStatus').textContent = '⚠️ ยังไม่เชื่อม Sheet';
-      return; 
-    }
-    
-    document.getElementById('dateLoadStatus').textContent = '⏳ กำลังดึงข้อมูล ' + todayKey + '...';
-    setSyncStatus('syncing', 'กำลังดึงข้อมูลจาก Sheet...');
-    
-    try {
-      const data = await readFromSheetJSONP('getDay', { date: todayKey });
-      
-      if (!data.success) {
-        document.getElementById('dateLoadStatus').textContent = '⚠️ ' + (data.error || 'ไม่สำเร็จ');
-        setSyncStatus('error', '⚠️ ดึงข้อมูลไม่สำเร็จ');
-        return;
-      }
-      
-      // เขียนข้อมูลจาก Sheet ลง localStorage (sheet = source of truth)
-      if (data.habits && Object.keys(data.habits).length > 0) {
-        setStore('habits_' + todayKey, data.habits);
-      } else {
-        // Sheet ไม่มี habit วันนั้น → เคลียร์ local ด้วย (อาจถูกลบจากอีกเครื่อง)
-        localStorage.removeItem(PREFIX + 'habits_' + todayKey);
-      }
-      
-      // Research
-      {
-        const log = getStore('research_log', []).filter(e => e.date !== todayKey);
-        if (data.research) {
-          log.unshift({ date: todayKey, minutes: data.research.minutes, note: data.research.note });
-        }
-        setStore('research_log', log);
-      }
-      
-      // Runs
-      {
-        const log = getStore('run_log', []).filter(e => e.date !== todayKey);
-        if (data.runs) {
-          log.unshift({ date: todayKey, distance: data.runs.distance, pace: data.runs.pace, minutes: data.runs.minutes, note: data.runs.note });
-        }
-        setStore('run_log', log);
-      }
-      
-      // Reflection
-      {
-        const log = getStore('reflection_log', []).filter(e => e.date !== todayKey);
-        if (data.reflection) {
-          log.unshift({ date: todayKey, win: data.reflection.win, challenge: data.reflection.challenge, next: data.reflection.next });
-        }
-        setStore('reflection_log', log);
-      }
-      
-      // Papers
-      {
-        const log = getStore('paper_log', []).filter(e => e.date !== todayKey);
-        if (data.papers && data.papers.length > 0) {
-          data.papers.forEach(p => log.unshift({ date: todayKey, title: p.title, round: p.round, note: p.note }));
-        }
-        setStore('paper_log', log);
-      }
-      
-      // refresh UI ทั้งหมด
-      reloadAllForDate();
-      renderResearchLog();
-      renderPaperLog();
-      renderRunHistory();
-      updateRunStats();
-      renderReflections();
-      updateStreak();
-      
-      const found = [];
-      if (data.habits && Object.keys(data.habits).length) found.push('habits');
-      if (data.research) found.push('research');
-      if (data.runs) found.push('run');
-      if (data.reflection) found.push('reflection');
-      if (data.papers && data.papers.length) found.push(data.papers.length + ' papers');
-      
-      document.getElementById('dateLoadStatus').textContent = 
-        found.length ? '✓ ดึงแล้ว: ' + found.join(', ') : '○ วันนี้ยังไม่มีข้อมูลใน Sheet';
-      setSyncStatus('connected', '✓ ดึงข้อมูล ' + todayKey + ' แล้ว');
-      
-    } catch (e) {
-      document.getElementById('dateLoadStatus').textContent = '⚠️ ' + e.message;
-      setSyncStatus('error', '⚠️ ' + e.message);
-    }
-  }
-  
-  function saveApiUrl() {
-    const url = document.getElementById('apiUrl').value.trim();
-    if (!url.startsWith('https://script.google.com/')) {
-      alert('URL ไม่ถูกต้อง — ต้องเริ่มด้วย https://script.google.com/');
-      return;
-    }
-    setStore('api_url', url);
-    setSyncStatus('connected', '✓ เชื่อมต่อแล้ว — ลองทดสอบเพื่อยืนยัน');
-    document.getElementById('connectionStatus').innerHTML = '<span style="color:var(--ink); font-weight:600">✓ บันทึก URL แล้ว</span>';
-  }
-  
-  async function testConnection() {
-    const url = getApiUrl();
-    if (!url) { alert('ใส่ URL ก่อน'); return; }
-    
-    document.getElementById('connectionStatus').innerHTML = '⏳ กำลังทดสอบ (อ่าน + เขียน)...';
-    
-    // Test 1: อ่าน (GET via JSONP)
-    try {
-      const status = await readFromSheetJSONP('status');
-      if (status && status.status === 'ok') {
-        document.getElementById('connectionStatus').innerHTML = 
-          '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)">' +
-          '<strong style="color:var(--success)">✓ อ่านข้อมูลได้</strong> (API v2 ' + (status.timestamp ? 'online' : '') + ')<br>' +
-          '⏳ กำลังทดสอบการเขียน...</div>';
-      }
-    } catch (e) {
-      document.getElementById('connectionStatus').innerHTML = 
-        '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)">' +
-        '<strong style="color:var(--error)">⚠️ อ่านไม่ได้: ' + e.message + '</strong><br><br>' +
-        'เช็ค:<br>' +
-        '• ใช้ Apps Script <strong>v2</strong> แล้ว (มี doGet)<br>' +
-        '• Re-deploy แบบ <strong>New version</strong><br>' +
-        '• URL ลงท้าย /exec</div>';
-      return;
-    }
-    
-    // Test 2: เขียน (POST)
-    const writeResult = await sendToSheets('reflection', {
-      date: realTodayKey,
-      win: '[TEST] ทดสอบจาก Dashboard v6',
-      challenge: '',
-      next: 'ลบ row นี้ได้'
-    });
-    
-    if (writeResult.success) {
-      document.getElementById('connectionStatus').innerHTML = 
-        '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)">' +
-        '<strong style="color:var(--success)">✓✓ สำเร็จทั้งอ่านและเขียน!</strong><br><br>' +
-        'ระบบพร้อมใช้งานเต็มรูปแบบ — ลองเลือกวันที่แล้วกด "ดึงข้อมูลจาก Sheet"</div>';
-    } else {
-      document.getElementById('connectionStatus').innerHTML = 
-        '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)">' +
-        '<strong style="color:var(--warning)">⚠️ อ่านได้ แต่เขียนมีปัญหา</strong><br>' +
-        (writeResult.error || '') + '</div>';
-    }
-  }
-  
-  async function manualSync() {
-    const url = getApiUrl();
-    if (!url) {
-      alert('ยังไม่ได้ตั้งค่า Sheets URL — ไปที่ Settings');
-      return;
-    }
-    setSyncStatus('syncing', 'กำลัง sync ข้อมูลวันนี้...');
-    
-    // Sync habits วันนี้
-    const habits = getStore('habits_' + todayKey, {});
-    if (Object.keys(habits).length > 0) {
-      await sendToSheets('habit', { date: todayKey, habits });
-    }
-    
-    setSyncStatus('connected', '✓ Sync เสร็จแล้ว · ' + new Date().toLocaleTimeString('th-TH'));
-  }
-  
-  async function syncAllData() {
-    const url = getApiUrl();
-    if (!url) { alert('ตั้งค่า URL ก่อน'); return; }
-    
-    document.getElementById('fullSyncStatus').innerHTML = '⏳ กำลัง sync ข้อมูลทั้งหมด...';
-    
-    // รวบรวมข้อมูล habits ทั้งหมด
-    const allHabits = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && k.startsWith(PREFIX + 'habits_')) {
-        const date = k.replace(PREFIX + 'habits_', '');
-        allHabits[date] = JSON.parse(localStorage.getItem(k));
-      }
-    }
-    
-    const payload = {
-      habits: allHabits,
-      research: getStore('research_log', []),
-      papers: getStore('paper_log', []),
-      runs: getStore('run_log', []),
-      reflections: getStore('reflection_log', [])
-    };
-    
-    const result = await sendToSheets('sync_all', payload);
-    
-    if (result.success) {
-      const counts = `Habits: ${Object.keys(allHabits).length} | Research: ${payload.research.length} | Papers: ${payload.papers.length} | Runs: ${payload.runs.length} | Reflections: ${payload.reflections.length}`;
-      document.getElementById('fullSyncStatus').innerHTML = 
-        '<span style="color:var(--success); font-weight:600">✓ Sync สำเร็จ<br>' + counts + '</span>';
-    } else {
-      document.getElementById('fullSyncStatus').innerHTML = 
-        '<span style="color:var(--error)">⚠️ ' + (result.error || 'ไม่สำเร็จ') + '</span>';
-    }
-  }
-  
-  // โหลดข้อมูลทั้งหมดจาก Sheet (สำหรับเครื่องใหม่ / multi-device)
-  async function loadAllFromSheet() {
-    const url = getApiUrl();
-    if (!url) { alert('ตั้งค่า URL ก่อน'); return; }
-    if (!confirm('จะดึงข้อมูลทั้งหมดจาก Sheet มาทับข้อมูลในเครื่องนี้ — ยืนยัน?')) return;
-    
-    document.getElementById('connectionStatus').innerHTML = '⏳ กำลังโหลดข้อมูลทั้งหมด...';
-    
-    try {
-      const data = await readFromSheetJSONP('getAll');
-      if (!data.success) {
-        document.getElementById('connectionStatus').innerHTML = '<span style="color:var(--error)">⚠️ ' + (data.error || 'ไม่สำเร็จ') + '</span>';
-        return;
-      }
-      
-      // เขียนทับ localStorage
-      if (data.habits) {
-        Object.entries(data.habits).forEach(([date, h]) => setStore('habits_' + date, h));
-      }
-      if (data.research) setStore('research_log', data.research);
-      if (data.runs) setStore('run_log', data.runs);
-      if (data.reflections) setStore('reflection_log', data.reflections);
-      if (data.papers) setStore('paper_log', data.papers);
-      
-      const counts = `Habits: ${Object.keys(data.habits||{}).length} | Research: ${(data.research||[]).length} | Runs: ${(data.runs||[]).length} | Reflections: ${(data.reflections||[]).length} | Papers: ${(data.papers||[]).length}`;
-      document.getElementById('connectionStatus').innerHTML = 
-        '<div style="background:white; padding:14px; border-radius:8px; color:var(--ink)"><strong style="color:var(--success)">✓ โหลดสำเร็จ</strong><br>' + counts + '<br><br>refresh หน้าเพื่อดูข้อมูล</div>';
-      
-      // refresh UI
-      reloadAllForDate();
-      renderResearchLog(); renderPaperLog(); renderRunHistory();
-      updateRunStats(); renderReflections(); updateStreak();
-      
-    } catch (e) {
-      document.getElementById('connectionStatus').innerHTML = '<span style="color:var(--error)">⚠️ ' + e.message + '</span>';
-    }
-  }
-  
-  function initSyncStatus() {
-    const url = getApiUrl();
-    if (url) {
-      setSyncStatus('connected', '✓ เชื่อมต่อ Google Sheets แล้ว');
-      document.getElementById('apiUrl').value = url;
-    } else {
-      setSyncStatus('', 'ยังไม่ได้เชื่อมต่อ — ไปที่ Settings');
-    }
-  }
+// บท 1-5
+const CHAPTERS = [
+  { id:'ch1', name:'บทที่ 1 · บทนำ', items:['ความเป็นมา','วัตถุประสงค์','คำถามวิจัย','สมมติฐาน','ขอบเขต','นิยามศัพท์','ประโยชน์'] },
+  { id:'ch2', name:'บทที่ 2 · วรรณกรรม', items:['แนวคิดการนิเทศ','ดิจิทัลแพลตฟอร์ม','active learning','การใฝ่เรียนรู้','กรอบแนวคิด'] },
+  { id:'ch3', name:'บทที่ 3 · วิธีดำเนินการ', items:['รูปแบบ R&D','ประชากร/กลุ่มตัวอย่าง','เครื่องมือวิจัย','การเก็บข้อมูล','การวิเคราะห์'] },
+  { id:'ch4', name:'บทที่ 4 · ผลการวิเคราะห์', items:['ผล R1','ผล D1','ผล R2','ผล D2'] },
+  { id:'ch5', name:'บทที่ 5 · สรุปอภิปราย', items:['สรุปผล','อภิปรายผล','ข้อเสนอแนะ'] },
+];
 
-  // ============ RESEARCH ============
-  function loadResearchChapters() {
-    const data = getStore('research_chapters', {});
-    document.querySelectorAll('[data-key]').forEach(item => {
-      const k = item.dataset.key;
-      const cb = item.querySelector('input');
-      if (data[k]) { cb.checked = true; item.classList.add('done'); }
-      cb.addEventListener('change', () => {
-        data[k] = cb.checked;
-        if (cb.checked) item.classList.add('done'); else item.classList.remove('done');
-        setStore('research_chapters', data);
-        updateResearchProgress();
-      });
-    });
-    updateResearchProgress();
-  }
-  function updateResearchProgress() {
-    const data = getStore('research_chapters', {});
-    const total = document.querySelectorAll('[data-key]').length;
-    const done = Object.values(data).filter(v => v).length;
-    const pct = total ? Math.round(done / total * 100) : 0;
-    document.getElementById('researchOverallPct').textContent = pct + '%';
-    document.getElementById('researchOverallBar').style.width = pct + '%';
-    const ch1Done = Object.keys(data).filter(k => k.startsWith('ch1_') && data[k]).length;
-    const ch2Done = Object.keys(data).filter(k => k.startsWith('ch2_') && data[k]).length;
-    let current = 'บทที่ 1';
-    if (ch1Done === 7) current = 'บทที่ 2';
-    if (ch1Done === 7 && ch2Done === 4) current = 'บทที่ 3';
-    document.getElementById('currentChapter').textContent = current;
-  }
-  function saveResearch() {
-    const topic = document.getElementById('researchTopic').value.trim();
-    if (!topic) { alert('ใส่หัวข้อ'); return; }
-    if (setStore('research_topic', topic)) alert('✓ บันทึกแล้ว');
-  }
-  function loadResearchTopic() {
-    const t = getStore('research_topic');
-    if (t) document.getElementById('researchTopic').value = t;
-  }
-  async function logResearch() {
-    const min = parseInt(document.getElementById('researchMinutes').value);
-    const note = document.getElementById('researchNote').value.trim();
-    if (!min) { alert('ใส่จำนวนนาที'); return; }
-    const entry = { date: todayKey, minutes: min, note };
-    // upsert — ลบของวันเดิมก่อน แล้วใส่ใหม่
-    const log = getStore('research_log', []).filter(e => e.date !== todayKey);
-    log.unshift(entry);
-    setStore('research_log', log.slice(0, 200));
-    renderResearchLog();
-    updateTodayResearchTime();
-    await sendToSheets('research', entry);
-  }
-  function renderResearchLog() {
-    const log = getStore('research_log', []);
-    const html = log.slice(0, 8).map(e => `
-      <div class="log-entry">
-        <div class="date">${e.date} · ${e.minutes} min
-          <button onclick="deleteResearch('${e.date}')" style="float:right; background:none; border:none; color:var(--error); cursor:pointer; font-size:16px" title="ลบ">🗑️</button>
-        </div>
-        ${e.note || '<i>ไม่มีบันทึก</i>'}
-      </div>`).join('');
-    document.getElementById('researchLog').innerHTML = html || '<div class="empty-state">ยังไม่มีบันทึก</div>';
-  }
-  async function deleteResearch(date) {
-    if (!confirm('ลบข้อมูลวิจัยของ ' + date + '?')) return;
-    const log = getStore('research_log', []).filter(e => e.date !== date);
-    setStore('research_log', log);
-    renderResearchLog();
-    updateTodayResearchTime();
-    if (date === todayKey) document.getElementById('researchMinutes').value = '';
-    await sendToSheets('delete', { sheet: 'Research', date });
-  }
-  function updateTodayResearchTime() {
-    const log = getStore('research_log', []);
-    const todayTotal = log.filter(e => e.date === todayKey).reduce((s, e) => s + e.minutes, 0);
-    document.getElementById('todayResearchTime').textContent = todayTotal + ' นาที';
-  }
+// Habits (ตรงตารางวินัยจริง) — core + bonus
+const HABITS_CORE = [
+  { id:'meditation', name:'🧘 สมาธิ', time:'05:30' },
+  { id:'research', name:'🔬 งานวิจัย', time:'05:40' },
+  { id:'english', name:'🌍 ภาษาอังกฤษ', time:'19:30' },
+];
+const HABITS_BONUS = [
+  { id:'reading', name:'📖 อ่านหนังสือ', time:'21:30' },
+  { id:'exercise', name:'🏃 ออกกำลัง/วิ่ง', time:'17:00' },
+];
+const ALL_HABITS = [...HABITS_CORE, ...HABITS_BONUS];
 
-  // ============ PAPERS ============
-  async function logPaper() {
-    const title = document.getElementById('paperTitle').value.trim();
-    const round = document.getElementById('paperRound').value;
-    const note = document.getElementById('paperNote').value.trim();
-    if (!title) { alert('ใส่ชื่อ paper'); return; }
-    const roundLabel = { scan: 'SCAN', read: 'READ', deep: 'DEEP' }[round];
-    const entry = { date: todayKey, title, round: roundLabel, note };
-    const log = getStore('paper_log', []);
-    log.unshift(entry);
-    setStore('paper_log', log.slice(0, 200));
-    document.getElementById('paperTitle').value = '';
-    document.getElementById('paperNote').value = '';
-    renderPaperLog();
-    await sendToSheets('paper', entry);
-  }
-  function renderPaperLog() {
-    const log = getStore('paper_log', []);
-    const total = log.length;
-    const html = log.slice(0, 8).map((e, idx) => `
-      <div class="log-entry">
-        <div class="date">${e.date} · ${e.round}
-          <button onclick="deletePaper('${e.date}', ${idx})" style="float:right; background:none; border:none; color:var(--error); cursor:pointer; font-size:16px" title="ลบ">🗑️</button>
-        </div>
-        <strong>${e.title}</strong>
-        ${e.note ? '<div style="margin-top:6px; color:var(--gray)">' + e.note + '</div>' : ''}
-      </div>`).join('');
-    const counter = total > 0 ? `<div style="margin-bottom:12px; padding:12px 16px; background:var(--ink); color:var(--pearl); border-radius:8px; font-size:13px"><strong style="color:var(--tiger)">${total}</strong> papers · เป้า 90 วัน: 40-50</div>` : '';
-    document.getElementById('paperLog').innerHTML = counter + (html || '<div class="empty-state">ยังไม่มี paper</div>');
-  }
-  async function deletePaper(date, idx) {
-    const log = getStore('paper_log', []);
-    const paper = log[idx];
-    if (!paper) return;
-    if (!confirm('ลบ paper "' + paper.title + '"?')) return;
-    log.splice(idx, 1);
-    setStore('paper_log', log);
-    renderPaperLog();
-    await sendToSheets('deletePaper', { date: paper.date, title: paper.title });
-  }
+// Ankle rehab
+const REHAB_ITEMS = [
+  { id:'calf', name:'Calf raises 3×15', star:false },
+  { id:'balance', name:'ยืนขาเดียว 30วิ×3', star:true },
+  { id:'band', name:'Resistance band 4 ทิศ', star:true },
+  { id:'heeltoe', name:'Heel-toe walk', star:false },
+  { id:'towel', name:'Towel scrunch ×15', star:false },
+];
 
-  // ============ HABITS ============
-  function loadHabits() {
-    document.querySelectorAll('[data-habit]').forEach(item => {
-      const h = item.dataset.habit;
-      const cb = item.querySelector('input');
-      cb.addEventListener('change', async () => {
-        const data = getStore('habits_' + todayKey, {});
-        if (cb.checked) {
-          data[h] = true;
-          item.classList.add('done');
-        } else {
-          // ลบ key ออกแทนการ set false → object ว่างจริงเมื่อติ๊กออกหมด
-          delete data[h];
-          item.classList.remove('done');
-        }
-        setStore('habits_' + todayKey, data);
-        updateHabitsSummary();
-        updateStreak();
-        // sync — ถ้า total=0 ฝั่ง server จะลบแถวให้ (Apps Script v3)
-        await sendToSheets('habit', { date: todayKey, habits: data });
-      });
-    });
-    const data = getStore('habits_' + todayKey, {});
-    document.querySelectorAll('[data-habit]').forEach(item => {
-      const h = item.dataset.habit;
-      const cb = item.querySelector('input');
-      if (data[h]) { cb.checked = true; item.classList.add('done'); }
-    });
-    updateHabitsSummary();
-    renderWeeklyStats();
-  }
-  function updateHabitsSummary() {
-    const data = getStore('habits_' + todayKey, {});
-    const total = document.querySelectorAll('[data-habit]').length;
-    const done = Object.values(data).filter(v => v).length;
-    document.getElementById('todayDone').textContent = done + '/' + total;
-    document.getElementById('todayBar').style.width = (done/total*100) + '%';
-  }
-  function renderWeeklyStats() {
-    const labels = { meditation:'🧘 สมาธิ', reading:'📖 อ่าน', english:'🌍 อังกฤษ', exercise:'🏃 ออกกำลังกาย', research:'📚 วิจัย' };
-    const counts = { meditation:0, reading:0, english:0, exercise:0, research:0 };
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const key = 'habits_' + d.toISOString().split('T')[0];
-      const data = getStore(key, {});
-      Object.keys(counts).forEach(h => { if (data[h]) counts[h]++; });
-    }
-    const html = Object.keys(counts).map(h => `
-      <div class="stat-row">
-        <span class="label">${labels[h]}</span>
-        <span class="value">${counts[h]}/7</span>
-      </div>`).join('');
-    document.getElementById('weeklyStats').innerHTML = html;
-  }
-  function updateStreak() {
-    let streak = 0;
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const key = 'habits_' + d.toISOString().split('T')[0];
-      const data = getStore(key, {});
-      const done = Object.values(data).filter(v => v).length;
-      if (done >= 3) streak++; else break;
-    }
-    document.getElementById('streakNumber').textContent = streak;
-  }
+// Quotes
+const QUOTES = [
+  'เริ่มก่อน สมบูรณ์แบบทีหลัง',
+  'ทำแค่วันละนิด ดีกว่าไม่ทำเลย',
+  'งานวิจัยที่เสร็จ ดีกว่างานที่สมบูรณ์แบบแต่ไม่จบ',
+  'วินัยคืออิสรภาพ',
+  'ข้อเท้าหายดี = วิ่งได้ทั้งชีวิต',
+  'ทุกย่อหน้าที่เขียน คือก้าวสู่เชี่ยวชาญ',
+  'อย่ารอให้พร้อม แล้วค่อยเริ่ม จงเริ่มแล้วจะพร้อมเอง',
+  'ความสม่ำเสมอชนะความสมบูรณ์แบบ',
+];
 
-  // ============ FOCUS ============
-  function saveWeeklyFocus() {
-    const v = document.getElementById('weeklyFocus').value.trim();
-    if (setStore('weekly_focus', v)) alert('✓ บันทึกแล้ว');
-  }
-  function loadWeeklyFocus() {
-    const v = getStore('weekly_focus');
-    if (v) document.getElementById('weeklyFocus').value = v;
-  }
+// Vision items
+const VISIONS = [
+  { ic:'🎓', txt:'ได้วิทยฐานะเชี่ยวชาญ — ยอมรับในความเป็นมืออาชีพ' },
+  { ic:'💰', txt:'เงินเดือน/เงินวิทยฐานะเพิ่มขึ้น มั่นคงให้ครอบครัว' },
+  { ic:'🏫', txt:'รูปแบบการนิเทศถูกนำไปใช้จริง พัฒนาครูทั้งโรงเรียน' },
+  { ic:'👨‍🏫', txt:'ครูสอน active learning เก่งขึ้น นักเรียนใฝ่เรียนรู้' },
+  { ic:'📜', txt:'เป็นต้นแบบให้โรงเรียนขนาดเล็กอื่นทำตาม' },
+  { ic:'⭐', txt:'ภูมิใจในตัวเอง พิสูจน์ว่าทำได้สำเร็จ' },
+];
 
-  // ============ RUNNING ============
-  async function logRun() {
-    const distance = parseFloat(document.getElementById('runDistance').value);
-    const pace = document.getElementById('runPace').value.trim();
-    const minutes = parseInt(document.getElementById('runMinutes').value);
-    const note = document.getElementById('runNote').value.trim();
-    if (!distance) { alert('ใส่ระยะทาง'); return; }
-    const entry = { date: todayKey, distance, pace, minutes, note };
-    // upsert
-    const log = getStore('run_log', []).filter(e => e.date !== todayKey);
-    log.unshift(entry);
-    setStore('run_log', log.slice(0, 200));
-    renderRunHistory();
-    updateRunStats();
-    updatePhase();
-    await sendToSheets('run', entry);
-    alert('✓ บันทึก/แก้ไขการวิ่งของ ' + todayKey + ' แล้ว');
-  }
-  function renderRunHistory() {
-    const log = getStore('run_log', []);
-    const html = log.slice(0, 8).map(e => `
-      <div class="log-entry">
-        <div class="date">${e.date}
-          <button onclick="deleteRun('${e.date}')" style="float:right; background:none; border:none; color:var(--error); cursor:pointer; font-size:16px" title="ลบ">🗑️</button>
-        </div>
-        <strong>${e.distance} km</strong> ${e.pace ? '· ' + e.pace + ' pace' : ''} ${e.minutes ? '· ' + e.minutes + ' min' : ''}
-        ${e.note ? '<div style="margin-top:4px; color:var(--gray)">' + e.note + '</div>' : ''}
-      </div>`).join('');
-    document.getElementById('runHistory').innerHTML = html || '<div class="empty-state">ยังไม่มีบันทึก</div>';
-  }
-  async function deleteRun(date) {
-    if (!confirm('ลบข้อมูลการวิ่งของ ' + date + '?')) return;
-    const log = getStore('run_log', []).filter(e => e.date !== date);
-    setStore('run_log', log);
-    renderRunHistory();
-    updateRunStats();
-    updatePhase();
-    if (date === todayKey) ['runDistance','runPace','runMinutes','runNote'].forEach(id => document.getElementById(id).value = '');
-    await sendToSheets('delete', { sheet: 'Runs', date });
-  }
-  function updateRunStats() {
-    const log = getStore('run_log', []);
-    if (log.length > 0) {
-      document.getElementById('lastRunDate').textContent = log[0].date;
-      document.getElementById('lastPace').textContent = log[0].pace || '-';
-    }
-    document.getElementById('totalRuns').textContent = log.length;
-  }
-  function updatePhase() {
-    const log = getStore('run_log', []);
-    const phases = [
-      { min: 0, max: 2, text: 'PHASE 01 · Rebuild Foundation — Walk 4 min + jog 1 min × 5 · 3 ครั้ง/สัปดาห์' },
-      { min: 3, max: 6, text: 'PHASE 02 · Easy Continuous Run — 20-30 min ที่ pace 6:30-7:00' },
-      { min: 7, max: 18, text: 'PHASE 03 · Base Building — 30-45 min, 3-4 ครั้ง/สัปดาห์ + long run' },
-      { min: 19, max: 30, text: 'PHASE 04 · Threshold — tempo run · เป้า 10K pace 4:30' },
-      { min: 31, max: 50, text: 'PHASE 05 · Speed Work — interval · เป้า pace 4:10' },
-      { min: 51, max: 999, text: 'PHASE 06 · Peak — TIME TRIAL · 10K ใน 40 นาที (pace 4:00)' }
-    ];
-    const phase = phases.find(p => log.length >= p.min && log.length <= p.max) || phases[0];
-    document.getElementById('currentPhase').innerHTML = phase.text;
-  }
+// ============ UTIL ============
+function fmtDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function getStore(k,def){ try{const v=localStorage.getItem(PREFIX+k); return v?JSON.parse(v):def;}catch(e){return def;} }
+function setStore(k,v){ try{localStorage.setItem(PREFIX+k,JSON.stringify(v));}catch(e){} }
+function thaiDate(d){
+  const days=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return 'วัน'+days[d.getDay()]+' '+d.getDate()+' '+months[d.getMonth()]+' '+(d.getFullYear()+543);
+}
 
-  // ============ REFLECTION ============
-  async function saveReflection() {
-    const win = document.getElementById('reflectWin').value.trim();
-    const ch = document.getElementById('reflectChallenge').value.trim();
-    const next = document.getElementById('reflectNext').value.trim();
-    if (!win && !ch && !next) { alert('เขียนอย่างน้อย 1 ช่อง'); return; }
-    const entry = { date: todayKey, win, challenge: ch, next };
-    // upsert
-    const log = getStore('reflection_log', []).filter(e => e.date !== todayKey);
-    log.unshift(entry);
-    setStore('reflection_log', log.slice(0, 200));
-    renderReflections();
-    await sendToSheets('reflection', entry);
-    alert('✓ บันทึก/แก้ไข reflection ของ ' + todayKey + ' แล้ว');
-  }
-  function renderReflections() {
-    const log = getStore('reflection_log', []);
-    const html = log.slice(0, 10).map(e => `
-      <div class="log-entry">
-        <div class="date">${e.date}
-          <button onclick="deleteReflection('${e.date}')" style="float:right; background:none; border:none; color:var(--error); cursor:pointer; font-size:16px" title="ลบ">🗑️</button>
-        </div>
-        ${e.win ? '<div style="margin-bottom:4px"><strong>✨</strong> ' + e.win + '</div>' : ''}
-        ${e.challenge ? '<div style="margin-bottom:4px"><strong>🌧️</strong> ' + e.challenge + '</div>' : ''}
-        ${e.next ? '<div><strong>🎯</strong> ' + e.next + '</div>' : ''}
-      </div>`).join('');
-    document.getElementById('reflectionHistory').innerHTML = html || '<div class="empty-state">ยังไม่มีบันทึก</div>';
-  }
-  async function deleteReflection(date) {
-    if (!confirm('ลบ reflection ของ ' + date + '?')) return;
-    const log = getStore('reflection_log', []).filter(e => e.date !== date);
-    setStore('reflection_log', log);
-    renderReflections();
-    if (date === todayKey) ['reflectWin','reflectChallenge','reflectNext'].forEach(id => document.getElementById(id).value = '');
-    await sendToSheets('delete', { sheet: 'Reflections', date });
-  }
+// ============ DATE PICKER ============
+function onDateChange(){
+  const v=document.getElementById('datePicker').value;
+  if(!v)return;
+  currentDate=new Date(v+'T00:00:00');
+  todayKey=v;
+  const isToday = v===fmtDate(new Date());
+  document.getElementById('dateNote').textContent = isToday?'(วันนี้)':'(ดูย้อนหลัง)';
+  reloadAllForDate();
+}
+function goToday(){
+  currentDate=new Date();
+  todayKey=fmtDate(currentDate);
+  document.getElementById('datePicker').value=todayKey;
+  document.getElementById('dateNote').textContent='(วันนี้)';
+  reloadAllForDate();
+}
+function reloadAllForDate(){
+  loadHabitsForDate(); loadResearchForDate(); loadRunForDate();
+  loadRehabForDate(); loadReflectionForDate(); updateAllStats();
+}
 
-  // ============ BACKUP ============
-  function exportData() {
-    const data = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(PREFIX)) data[key] = localStorage.getItem(key);
-    }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dashboard_backup_${todayKey}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    alert('✓ Export สำเร็จ');
-  }
-  function importData() {
-    const file = document.getElementById('importFile').files[0];
-    if (!file) { alert('เลือกไฟล์ก่อน'); return; }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (!confirm('ข้อมูลปัจจุบันจะถูกแทนที่ ยืนยัน?')) return;
-        for (const key in data) {
-          if (key.startsWith(PREFIX)) localStorage.setItem(key, data[key]);
-        }
-        alert('✓ Import สำเร็จ — refresh หน้า');
-        location.reload();
-      } catch (err) { alert('ไฟล์ไม่ถูกต้อง'); }
-    };
-    reader.readAsText(file);
-  }
-  function resetData() {
-    if (!confirm('ลบข้อมูล localStorage? (ข้อมูลใน Sheets จะยังอยู่)')) return;
-    const keys = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(PREFIX)) keys.push(key);
-    }
-    keys.forEach(k => localStorage.removeItem(k));
-    location.reload();
-  }
+// ============ TABS ============
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+}
 
-  // Init
+// ============ SYNC: Google Sheet ============
+function getApiUrl(){ return getStore('api_url',''); }
+function saveApiUrl(){
+  const url=document.getElementById('apiUrl').value.trim();
+  setStore('api_url',url);
+  document.getElementById('connTest').innerHTML='<span style="color:var(--success)">✓ บันทึก URL แล้ว</span>';
   initSyncStatus();
-  loadResearchChapters();
-  loadResearchTopic();
-  renderResearchLog();
-  updateTodayResearchTime();
-  renderPaperLog();
-  loadHabits();
-  updateStreak();
-  loadWeeklyFocus();
-  renderRunHistory();
-  updateRunStats();
-  updatePhase();
-  renderReflections();
-  loadDayIntoForms();
-  
-  // ถ้าเชื่อม Sheet แล้ว → auto-pull ข้อมูลวันนี้ (multi-device)
-  if (getApiUrl()) {
-    setTimeout(() => pullFromSheet(), 800);
+}
+function setSyncStatus(state,msg){
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncText');
+  dot.className='dot';
+  if(state==='on'){dot.classList.add('on');}
+  else if(state==='sync'){dot.classList.add('sync');}
+  else if(state==='err'){dot.classList.add('err');}
+  txt.textContent=msg;
+}
+function initSyncStatus(){
+  if(getApiUrl()){ setSyncStatus('on','เชื่อมต่อ Google Sheet แล้ว'); }
+  else { setSyncStatus('','ยังไม่ได้เชื่อมต่อ Google Sheet'); }
+}
+
+// POST (write) ผ่าน fetch no-cors
+async function sendToSheets(type,payload){
+  const url=getApiUrl();
+  if(!url) return false;
+  setSyncStatus('sync','กำลังซิงค์...');
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({type,payload})});
+    setSyncStatus('on','ซิงค์แล้ว · '+new Date().toLocaleTimeString('th-TH'));
+    return true;
+  }catch(e){
+    setSyncStatus('err','ซิงค์ไม่สำเร็จ'); return false;
   }
+}
+
+// READ ผ่าน JSONP (เลี่ยง CORS)
+function readFromSheetJSONP(action,params={}){
+  return new Promise((resolve,reject)=>{
+    const url=getApiUrl();
+    if(!url){reject('no url');return;}
+    const cb='cb_'+Date.now()+Math.floor(Math.random()*1000);
+    const timeout=setTimeout(()=>{cleanup();reject('timeout');},10000);
+    function cleanup(){clearTimeout(timeout);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);}
+    window[cb]=(data)=>{cleanup();resolve(data);};
+    const qs=new URLSearchParams({action,callback:cb,...params}).toString();
+    const s=document.createElement('script');
+    s.src=url+'?'+qs;
+    s.onerror=()=>{cleanup();reject('script error');};
+    document.body.appendChild(s);
+  });
+}
+
+async function testConnection(){
+  const box=document.getElementById('connTest');
+  box.innerHTML='<span style="color:var(--gray)">⏳ กำลังทดสอบ...</span>';
+  try{
+    const r=await readFromSheetJSONP('getDates');
+    box.innerHTML='<span style="color:var(--success)">✓ เชื่อมต่อสำเร็จ! พบข้อมูล '+(r.dates?r.dates.length:0)+' วัน</span>';
+    setSyncStatus('on','เชื่อมต่อสำเร็จ');
+  }catch(e){
+    box.innerHTML='<span style="color:var(--error)">✗ เชื่อมต่อไม่ได้: '+e+'<br>ตรวจสอบ URL หรือเปิดผ่าน GitHub Pages</span>';
+    setSyncStatus('err','เชื่อมต่อไม่ได้');
+  }
+}
+
+async function manualSync(){
+  if(!getApiUrl()){alert('กรุณาตั้งค่า Apps Script URL ในแท็บ "ตั้งค่า" ก่อน');switchTab('settings');return;}
+  setSyncStatus('sync','กำลังซิงค์ทั้งหมด...');
+  await syncAllData();
+  setSyncStatus('on','ซิงค์ทั้งหมดเสร็จ');
+}
+
+async function syncAllData(){
+  // ส่งข้อมูลวันปัจจุบันทั้งหมดขึ้น
+  const h=getStore('habits_'+todayKey,{});
+  if(Object.keys(h).length) await sendToSheets('habit',{date:todayKey,habits:h});
+  const rl=getStore('research_log',[]).find(e=>e.date===todayKey);
+  if(rl) await sendToSheets('research',{date:todayKey,minutes:rl.minutes,note:rl.note});
+  const run=getStore('run_log',[]).find(e=>e.date===todayKey);
+  if(run) await sendToSheets('run',run);
+  const ref=getStore('reflection_log',[]).find(e=>e.date===todayKey);
+  if(ref) await sendToSheets('reflection',ref);
+}
+
+async function pullFromSheet(){
+  if(!getApiUrl()){alert('กรุณาตั้งค่า URL ก่อน');switchTab('settings');return;}
+  setSyncStatus('sync','กำลังดึงข้อมูล '+todayKey+'...');
+  try{
+    const data=await readFromSheetJSONP('getDay',{date:todayKey});
+    // habits
+    if(data.habits && Object.keys(data.habits).length>0){ setStore('habits_'+todayKey,data.habits); }
+    else { localStorage.removeItem(PREFIX+'habits_'+todayKey); }
+    // research
+    { const log=getStore('research_log',[]).filter(e=>e.date!==todayKey);
+      if(data.research){log.unshift({date:todayKey,minutes:data.research.minutes,note:data.research.note});}
+      setStore('research_log',log); }
+    // runs
+    { const log=getStore('run_log',[]).filter(e=>e.date!==todayKey);
+      if(data.runs){log.unshift({date:todayKey,...data.runs});}
+      setStore('run_log',log); }
+    // reflection
+    { const log=getStore('reflection_log',[]).filter(e=>e.date!==todayKey);
+      if(data.reflection){log.unshift({date:todayKey,...data.reflection});}
+      setStore('reflection_log',log); }
+    setSyncStatus('on','ดึงข้อมูลสำเร็จ');
+    reloadAllForDate();
+  }catch(e){
+    setSyncStatus('err','ดึงข้อมูลไม่สำเร็จ: '+e);
+  }
+}
+
+async function loadAllFromSheet(){
+  if(!getApiUrl()){alert('กรุณาตั้งค่า URL ก่อน');switchTab('settings');return;}
+  setSyncStatus('sync','กำลังดึงข้อมูลทั้งหมด...');
+  try{
+    const data=await readFromSheetJSONP('getAll');
+    if(data.habits) for(const [date,h] of Object.entries(data.habits)) setStore('habits_'+date,h);
+    if(data.research) setStore('research_log',data.research);
+    if(data.runs) setStore('run_log',data.runs);
+    if(data.reflections) setStore('reflection_log',data.reflections);
+    if(data.papers) setStore('paper_log',data.papers);
+    setSyncStatus('on','ดึงข้อมูลทั้งหมดสำเร็จ');
+    reloadAllForDate();
+  }catch(e){ setSyncStatus('err','ดึงไม่สำเร็จ: '+e); }
+}
+
+// ============ HABITS (core/bonus + streak แยกราย habit) ============
+function getResearchPhaseMode(){
+  // คืนค่า 'reading' | 'writing' | 'normal' ตามระยะวิจัยปัจจุบัน
+  const ym=todayKey.slice(0,7);
+  const ph=PHASES.find(p=>ym>=p.start&&ym<=p.end);
+  if(!ph)return 'normal';
+  if(ph.id==='R1'||ph.id==='D1')return 'reading';
+  if(ph.id==='D2')return 'writing';
+  return 'normal';
+}
+function renderHabitItems(){
+  const mode=getResearchPhaseMode();
+  // ปรับ label ตาม phase
+  let lbl='ช่วงปกติ';
+  if(mode==='reading')lbl='ช่วงอ่าน/ทบทวนวรรณกรรม';
+  else if(mode==='writing')lbl='ช่วงเขียนรายงาน';
+  document.getElementById('habitPhaseLabel').textContent=lbl;
+
+  const data=getStore('habits_'+todayKey,{});
+  const coreBox=document.getElementById('habitCore');
+  const bonusBox=document.getElementById('habitBonus');
+
+  coreBox.innerHTML=HABITS_CORE.map(h=>{
+    const done=data[h.id]?'done':'';
+    const checked=data[h.id]?'checked':'';
+    const streak=calcHabitStreak(h.id);
+    const sval=streak>0?`<span class="streak-mini">🔥 ${streak}</span>`:'';
+    return `<label class="chk ${done}">
+      <input type="checkbox" ${checked} onchange="toggleHabit('${h.id}',this.checked)">
+      <span>${h.name}</span><span style="font-size:11px;color:var(--gray-light);margin-left:6px">${h.time}</span>
+      ${sval}</label>`;
+  }).join('');
+
+  bonusBox.innerHTML=HABITS_BONUS.map(h=>{
+    const done=data[h.id]?'done':'';
+    const checked=data[h.id]?'checked':'';
+    const streak=calcHabitStreak(h.id);
+    const sval=streak>0?`<span class="streak-mini">🔥 ${streak}</span>`:'';
+    return `<label class="chk ${done}">
+      <input type="checkbox" ${checked} onchange="toggleHabit('${h.id}',this.checked)">
+      <span>${h.name}</span><span style="font-size:11px;color:var(--gray-light);margin-left:6px">${h.time}</span>
+      ${sval}</label>`;
+  }).join('');
+}
+async function toggleHabit(id,checked){
+  const data=getStore('habits_'+todayKey,{});
+  if(checked) data[id]=true; else delete data[id];
+  setStore('habits_'+todayKey,data);
+  renderHabitItems(); updateHabitStats(); updateAllStats();
+  await sendToSheets('habit',{date:todayKey,habits:data});
+}
+function calcHabitStreak(habitId){
+  // นับ streak ย้อนหลังจากวันปัจจุบัน เฉพาะ habit นี้
+  let streak=0;
+  let d=new Date(currentDate);
+  for(let i=0;i<365;i++){
+    const k=fmtDate(d);
+    const h=getStore('habits_'+k,{});
+    if(h[habitId]){streak++;}
+    else{ if(i===0){/*วันนี้ยังไม่ทำ ข้ามไปเช็คเมื่อวาน*/}else break; }
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+function updateHabitStats(){
+  const data=getStore('habits_'+todayKey,{});
+  const total=ALL_HABITS.length;
+  const done=ALL_HABITS.filter(h=>data[h.id]).length;
+  const coreDone=HABITS_CORE.filter(h=>data[h.id]).length;
+  document.getElementById('habitScoreBig').textContent=done+'/'+total;
+  document.getElementById('habitScoreBar').style.width=(done/total*100)+'%';
+  document.getElementById('habitCoreStatus').textContent=coreDone+'/'+HABITS_CORE.length+(coreDone===HABITS_CORE.length?' ✓':'');
+  // max streak จากทุก habit
+  const maxS=Math.max(0,...ALL_HABITS.map(h=>calcHabitStreak(h.id)));
+  document.getElementById('habitMaxStreak').textContent=maxS+' วัน';
+}
+function loadHabitsForDate(){ renderHabitItems(); updateHabitStats(); }
+
+function markMinimumDay(){
+  // ทำ habit แรกที่ยังไม่ทำใน core ให้สำเร็จ (minimum viable day)
+  const data=getStore('habits_'+todayKey,{});
+  const firstUndone=HABITS_CORE.find(h=>!data[h.id]);
+  if(firstUndone){
+    data[firstUndone.id]=true;
+    setStore('habits_'+todayKey,data);
+    renderHabitItems();updateHabitStats();updateAllStats();
+    sendToSheets('habit',{date:todayKey,habits:data});
+    alert('✓ บันทึกแล้ว: '+firstUndone.name+'\nวันนี้ทำขั้นต่ำสำเร็จ — streak ไม่ขาด!');
+  } else {
+    alert('🎉 เยี่ยม! วันนี้ทำ core ครบหมดแล้ว');
+  }
+}
+
+// ============ RESEARCH ============
+let selectedPhase='R1';
+function renderPhaseStepper(){
+  const prog=getStore('phase_progress',{});
+  const ym=todayKey.slice(0,7);
+  const box=document.getElementById('phaseStepper');
+  box.innerHTML=PHASES.map(p=>{
+    const tasks=getStore('phase_tasks_'+p.id,{});
+    const doneCount=p.tasks.filter((_,i)=>tasks[i]).length;
+    const pct=Math.round(doneCount/p.tasks.length*100);
+    const isCurrent=ym>=p.start&&ym<=p.end;
+    const isDone=pct===100;
+    const cls=isDone?'done':(p.id===selectedPhase?'active':'');
+    return `<div class="step ${cls}" onclick="selectPhase('${p.id}')">
+      <div class="sn">${p.id} ${isCurrent?'· ตอนนี้':''}</div>
+      <div class="st">${p.name.split('·')[1]||p.id}</div>
+      <div class="sp">${pct}% (${doneCount}/${p.tasks.length})</div>
+      <div class="sbar"><div class="sfill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+function selectPhase(id){ selectedPhase=id; renderPhaseStepper(); renderPhaseTasks(); }
+function renderPhaseTasks(){
+  const p=PHASES.find(x=>x.id===selectedPhase);
+  const tasks=getStore('phase_tasks_'+p.id,{});
+  document.getElementById('phaseTitle').textContent=p.name;
+  document.getElementById('phaseDesc').textContent=p.desc+' · ('+p.start+' ถึง '+p.end+')';
+  document.getElementById('phaseTasks').innerHTML=p.tasks.map((t,i)=>{
+    const done=tasks[i]?'done':'';const ck=tasks[i]?'checked':'';
+    return `<label class="chk ${done}"><input type="checkbox" ${ck} onchange="togglePhaseTask('${p.id}',${i},this.checked)"><span>${t}</span></label>`;
+  }).join('');
+}
+function togglePhaseTask(pid,idx,checked){
+  const tasks=getStore('phase_tasks_'+pid,{});
+  if(checked)tasks[idx]=true;else delete tasks[idx];
+  setStore('phase_tasks_'+pid,tasks);
+  renderPhaseStepper();renderPhaseTasks();updateResearchProgress();
+}
+function renderChapters(){
+  const box=document.getElementById('chaptersGrid');
+  box.innerHTML=CHAPTERS.map(c=>{
+    const st=getStore('chapter_'+c.id,{});
+    const done=c.items.filter((_,i)=>st[i]).length;
+    const pct=Math.round(done/c.items.length*100);
+    return `<div class="card c4" style="margin-bottom:0">
+      <div class="lbl">${c.name}</div>
+      <div style="font-family:'Bai Jamjuree';font-size:28px;font-weight:700">${pct}%</div>
+      <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+      <div style="margin-top:10px">${c.items.map((it,i)=>{
+        const d=st[i]?'done':'';const ck=st[i]?'checked':'';
+        return `<label class="chk ${d}" style="padding:8px 11px;font-size:13px"><input type="checkbox" ${ck} onchange="toggleChapter('${c.id}',${i},this.checked)"><span>${it}</span></label>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+}
+function toggleChapter(cid,idx,checked){
+  const st=getStore('chapter_'+cid,{});
+  if(checked)st[idx]=true;else delete st[idx];
+  setStore('chapter_'+cid,st);
+  renderChapters();updateResearchProgress();
+}
+function updateResearchProgress(){
+  // รวมทั้ง phase + chapter
+  let totItems=0,totDone=0;
+  PHASES.forEach(p=>{const t=getStore('phase_tasks_'+p.id,{});totItems+=p.tasks.length;totDone+=p.tasks.filter((_,i)=>t[i]).length;});
+  CHAPTERS.forEach(c=>{const s=getStore('chapter_'+c.id,{});totItems+=c.items.length;totDone+=c.items.filter((_,i)=>s[i]).length;});
+  const pct=totItems?Math.round(totDone/totItems*100):0;
+  const el=document.getElementById('researchPct');if(el)el.textContent=pct+'%';
+  const bar=document.getElementById('researchPctBar');if(bar)bar.style.width=pct+'%';
+  // phase ปัจจุบัน
+  const ym=todayKey.slice(0,7);
+  const cur=PHASES.find(p=>ym>=p.start&&ym<=p.end)||PHASES[0];
+  const pn=document.getElementById('researchPhaseNow');if(pn)pn.textContent=cur.name;
+}
+function loadResearchForDate(){
+  // โหลด time log ของวันนี้เข้าฟอร์ม
+  const rl=getStore('research_log',[]).find(e=>e.date===todayKey);
+  document.getElementById('researchMinutes').value=rl?rl.minutes:'';
+  document.getElementById('researchNote').value=rl?rl.note:'';
+  renderResearchLog();renderPaperLog();
+}
+async function logResearch(){
+  const min=parseInt(document.getElementById('researchMinutes').value)||0;
+  const note=document.getElementById('researchNote').value.trim();
+  if(!min){alert('กรุณาใส่จำนวนนาที');return;}
+  const log=getStore('research_log',[]).filter(e=>e.date!==todayKey);
+  log.unshift({date:todayKey,minutes:min,note});
+  setStore('research_log',log);
+  renderResearchLog();updateAllStats();
+  await sendToSheets('research',{date:todayKey,minutes:min,note});
+}
+function renderResearchLog(){
+  const log=getStore('research_log',[]);
+  const totMin=log.reduce((s,e)=>s+(e.minutes||0),0);
+  const totH=(totMin/60).toFixed(1);
+  const box=document.getElementById('researchLog');
+  const head=log.length?`<div style="font-size:12px;color:var(--gray);margin-bottom:8px">รวม ${log.length} วัน · ${totH} ชม.</div>`:'';
+  box.innerHTML=head+(log.slice(0,6).map(e=>`<div class="log"><button class="del" onclick="deleteResearch('${e.date}')">🗑</button><div class="d">${e.date} · ${e.minutes} นาที</div>${e.note||'<i>ไม่มีโน้ต</i>'}</div>`).join('')||'<div class="empty">ยังไม่มีบันทึก</div>');
+}
+async function deleteResearch(date){
+  if(!confirm('ลบข้อมูลวิจัยวันที่ '+date+'?'))return;
+  setStore('research_log',getStore('research_log',[]).filter(e=>e.date!==date));
+  renderResearchLog();updateAllStats();
+  if(date===todayKey){document.getElementById('researchMinutes').value='';document.getElementById('researchNote').value='';}
+  await sendToSheets('delete',{sheet:'Research',date});
+}
+async function logPaper(){
+  const title=document.getElementById('paperTitle').value.trim();
+  const round=document.getElementById('paperRound').value;
+  const note=document.getElementById('paperNote').value.trim();
+  if(!title){alert('กรุณาใส่ชื่อเรื่อง');return;}
+  const log=getStore('paper_log',[]);
+  log.unshift({date:todayKey,title,round,note});
+  setStore('paper_log',log);
+  document.getElementById('paperTitle').value='';document.getElementById('paperNote').value='';
+  renderPaperLog();
+  await sendToSheets('paper',{date:todayKey,title,round,note});
+}
+function renderPaperLog(){
+  const log=getStore('paper_log',[]);
+  const box=document.getElementById('paperLog');
+  const head=log.length?`<div style="font-size:12px;color:var(--gray);margin-bottom:8px"><strong style="color:var(--tiger)">${log.length}</strong> papers · เป้า 40-50</div>`:'';
+  box.innerHTML=head+(log.slice(0,6).map((e,i)=>`<div class="log"><button class="del" onclick="deletePaper(${i})">🗑</button><div class="d">${e.date} · ${e.round}</div><strong>${e.title}</strong>${e.note?'<div style="margin-top:5px;color:var(--gray)">'+e.note+'</div>':''}</div>`).join('')||'<div class="empty">ยังไม่มี paper</div>');
+}
+async function deletePaper(idx){
+  const log=getStore('paper_log',[]);const p=log[idx];if(!p)return;
+  if(!confirm('ลบ paper "'+p.title+'"?'))return;
+  log.splice(idx,1);setStore('paper_log',log);renderPaperLog();
+  await sendToSheets('deletePaper',{date:p.date,title:p.title});
+}
+
+// ============ RUNNING & ANKLE ============
+function getRunPhaseWeek(){
+  // คำนวณ phase/สัปดาห์จากวันที่ เทียบ RUN_START
+  const diff=Math.floor((currentDate-RUN_START)/(1000*60*60*24));
+  if(diff<0) return {phase:'-',week:0,focus:'ยังไม่เริ่มแผน (เริ่ม 8 มิ.ย. 2026)'};
+  const week=Math.floor(diff/7)+1;
+  let phase,focus;
+  if(week<=4){phase='A';focus='เดือน 1: สร้างฐาน + ฟื้นฟูข้อเท้า (easy run + rehab)';}
+  else if(week<=8){phase='A';focus='เดือน 2: สร้าง aerobic base + tempo เบา';}
+  else if(week<=12){phase='B';focus='เดือน 3: เริ่ม speed เบา (interval pace 3:50→3:45)';}
+  else if(week<=16){phase='B';focus='เดือน 4: cruise interval + เพิ่มความเข้ม';}
+  else if(week<=21){phase='B';focus='เดือน 5: peak + fartlek → time trial sub-40';}
+  else {phase='✓';focus='จบโปรแกรม! ประเมินผล + วางแผนต่อ';}
+  return {phase,week:Math.min(week,21),focus};
+}
+function loadRunForDate(){
+  const pw=getRunPhaseWeek();
+  document.getElementById('runPhaseNow').textContent=pw.phase;
+  document.getElementById('runWeekNow').textContent='W'+pw.week;
+  document.getElementById('runWeekFocus').textContent=pw.focus;
+  // โหลด log วันนี้
+  const r=getStore('run_log',[]).find(e=>e.date===todayKey);
+  document.getElementById('runDist').value=r?r.distance:'';
+  document.getElementById('runMin').value=r?(r.minutes||''):'';
+  document.getElementById('runPace').value=r?(r.pace||''):'';
+  if(r&&r.type)document.getElementById('runType').value=r.type;
+  if(r&&r.ankle)document.getElementById('ankleStatus').value=r.ankle;
+  document.getElementById('runNote').value=r?(r.note||''):'';
+  renderRunHistory();
+}
+async function logRun(){
+  const distance=parseFloat(document.getElementById('runDist').value)||0;
+  const minutes=parseInt(document.getElementById('runMin').value)||0;
+  const pace=document.getElementById('runPace').value.trim();
+  const type=document.getElementById('runType').value;
+  const ankle=document.getElementById('ankleStatus').value;
+  const note=document.getElementById('runNote').value.trim();
+  if(!distance&&type!=='Cross'){alert('กรุณาใส่ระยะทาง');return;}
+  const log=getStore('run_log',[]).filter(e=>e.date!==todayKey);
+  log.unshift({date:todayKey,distance,minutes,pace,type,ankle,note});
+  setStore('run_log',log);
+  // เตือนถ้าข้อเท้าเจ็บ
+  const warn=document.getElementById('ankleWarn');
+  if(ankle==='เจ็บ-บวม'){
+    warn.style.display='block';
+    warn.innerHTML='🛑 ข้อเท้าเจ็บ/บวม — ควรพัก 2-3 วัน ประคบเย็น ถ้าไม่ดีขึ้นพบแพทย์ (หมอเคยเตือนเรื่องพลิก)';
+  } else if(ankle==='เจ็บนิดหน่อย'){
+    warn.style.display='block';
+    warn.innerHTML='⚠️ ข้อเท้าเริ่มเจ็บ — ลดความเข้มการซ้อม เน้น rehab ฟังร่างกาย';
+  } else { warn.style.display='none'; }
+  renderRunHistory();updateAllStats();
+  await sendToSheets('run',{date:todayKey,distance,minutes,pace,type,ankle,note});
+}
+function renderRunHistory(){
+  const log=getStore('run_log',[]);
+  const box=document.getElementById('runHistory');
+  box.innerHTML=log.slice(0,6).map(e=>{
+    const ankleIc={'ดี':'😊','ตึงเล็กน้อย':'😐','เจ็บนิดหน่อย':'😟','เจ็บ-บวม':'🛑'}[e.ankle]||'';
+    return `<div class="log"><button class="del" onclick="deleteRun('${e.date}')">🗑</button>
+      <div class="d">${e.date} · ${e.type||'Run'} ${ankleIc}</div>
+      <strong>${e.distance} กม.</strong> ${e.pace?'· '+e.pace+' pace':''} ${e.minutes?'· '+e.minutes+' นาที':''}
+      ${e.note?'<div style="margin-top:4px;color:var(--gray)">'+e.note+'</div>':''}</div>`;
+  }).join('')||'<div class="empty">ยังไม่มีบันทึกการวิ่ง</div>';
+}
+async function deleteRun(date){
+  if(!confirm('ลบข้อมูลการวิ่งวันที่ '+date+'?'))return;
+  setStore('run_log',getStore('run_log',[]).filter(e=>e.date!==date));
+  renderRunHistory();updateAllStats();
+  if(date===todayKey)['runDist','runMin','runPace','runNote'].forEach(id=>document.getElementById(id).value='');
+  await sendToSheets('delete',{sheet:'Runs',date});
+}
+
+// Ankle rehab (เก็บแยกราย date)
+function renderRehab(){
+  const data=getStore('rehab_'+todayKey,{});
+  document.getElementById('rehabList').innerHTML=REHAB_ITEMS.map(r=>{
+    const done=data[r.id]?'done':'';const ck=data[r.id]?'checked':'';
+    const star=r.star?' ⭐':'';
+    return `<label class="chk ${done}" style="padding:10px 13px;font-size:13px"><input type="checkbox" ${ck} onchange="toggleRehab('${r.id}',this.checked)"><span>${r.name}${star}</span></label>`;
+  }).join('');
+}
+function toggleRehab(id,checked){
+  const data=getStore('rehab_'+todayKey,{});
+  if(checked)data[id]=true;else delete data[id];
+  setStore('rehab_'+todayKey,data);
+  renderRehab();
+}
+function loadRehabForDate(){ renderRehab(); }
+
+// ============ COUNTDOWN ============
+function updateCountdown(){
+  const now=new Date();
+  const diff=DEADLINE-now;
+  const days=Math.floor(diff/(1000*60*60*24));
+  const months=Math.floor(days/30);
+  const weeks=Math.floor((days%30)/7);
+  const box=document.getElementById('countdownMain');
+  if(box){
+    box.innerHTML=`
+      <div class="cd-item"><div class="cd-num">${days}</div><div class="cd-lbl">วัน</div></div>
+      <div class="cd-item"><div class="cd-num">${months}</div><div class="cd-lbl">เดือน</div></div>
+      <div class="cd-item"><div class="cd-num">${weeks}</div><div class="cd-lbl">สัปดาห์(เศษ)</div></div>`;
+  }
+  const sub=document.getElementById('countdownSub');
+  if(sub)sub.textContent='เหลือเวลาอีก '+days+' วัน จนถึงวันยื่นขอวิทยฐานะเชี่ยวชาญ';
+}
+
+// ============ POMODORO ============
+let pomoTimer=null, pomoSec=25*60, pomoMode=25, pomoRunning=false;
+function fmtPomo(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function renderPomo(){const el=document.getElementById('pomoTime');if(el)el.textContent=fmtPomo(pomoSec);}
+function setPomoMode(min){pomoMode=min;pomoSec=min*60;pomoRunning=false;if(pomoTimer)clearInterval(pomoTimer);
+  document.getElementById('pomoState').textContent=min===25?'โหมดโฟกัส 25 นาที':'โหมดพัก '+min+' นาที';renderPomo();}
+function startPomo(){
+  if(pomoRunning)return;
+  pomoRunning=true;
+  document.getElementById('pomoState').textContent='⏱ กำลังโฟกัส...';
+  pomoTimer=setInterval(()=>{
+    pomoSec--;renderPomo();
+    if(pomoSec<=0){
+      clearInterval(pomoTimer);pomoRunning=false;
+      if(pomoMode===25){
+        const c=getStore('pomo_'+todayKey,0)+1;setStore('pomo_'+todayKey,c);
+        document.getElementById('pomoCount').textContent=c;
+        document.getElementById('pomoState').textContent='🎉 ครบ 1 รอบ! พัก 5 นาที';
+        try{new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiP1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmFgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');p.play();}catch(e){}
+        alert('🍅 ครบ 25 นาที! พักสายตา 5 นาที แล้วค่อยลุยต่อ');
+      } else {
+        document.getElementById('pomoState').textContent='พักเสร็จ — พร้อมโฟกัสต่อ';
+        alert('พัก 5 นาทีเสร็จแล้ว กลับมาโฟกัสกันต่อ!');
+        setPomoMode(25);
+      }
+    }
+  },1000);
+}
+function pausePomo(){if(pomoTimer)clearInterval(pomoTimer);pomoRunning=false;document.getElementById('pomoState').textContent='⏸ หยุดชั่วคราว';}
+function resetPomo(){if(pomoTimer)clearInterval(pomoTimer);pomoRunning=false;pomoSec=pomoMode*60;renderPomo();document.getElementById('pomoState').textContent='พร้อมเริ่ม';}
+function loadPomoCount(){const el=document.getElementById('pomoCount');if(el)el.textContent=getStore('pomo_'+todayKey,0);}
+
+// ============ VISION BOARD ============
+function renderVision(){
+  const box=document.getElementById('visionBoard');
+  if(box)box.innerHTML=VISIONS.map(v=>`<div class="vision-item"><span class="vision-ic">${v.ic}</span><span>${v.txt}</span></div>`).join('');
+}
+
+// ============ REFLECTION ============
+function loadReflectionForDate(){
+  const r=getStore('reflection_log',[]).find(e=>e.date===todayKey);
+  document.getElementById('reflectWin').value=r?(r.win||''):'';
+  document.getElementById('reflectChallenge').value=r?(r.challenge||''):'';
+  document.getElementById('reflectNext').value=r?(r.next||''):'';
+  renderReflections();
+}
+async function saveReflection(){
+  const win=document.getElementById('reflectWin').value.trim();
+  const challenge=document.getElementById('reflectChallenge').value.trim();
+  const next=document.getElementById('reflectNext').value.trim();
+  if(!win&&!challenge&&!next){alert('กรุณากรอกอย่างน้อย 1 ช่อง');return;}
+  const log=getStore('reflection_log',[]).filter(e=>e.date!==todayKey);
+  log.unshift({date:todayKey,win,challenge,next});
+  setStore('reflection_log',log);
+  renderReflections();
+  await sendToSheets('reflection',{date:todayKey,win,challenge,next});
+  alert('✓ บันทึกสะท้อนผลแล้ว');
+}
+function renderReflections(){
+  const log=getStore('reflection_log',[]);
+  document.getElementById('reflectionHistory').innerHTML=log.slice(0,10).map(e=>`<div class="log"><button class="del" onclick="deleteReflection('${e.date}')">🗑</button><div class="d">${e.date}</div>${e.win?'<div>✨ '+e.win+'</div>':''}${e.challenge?'<div style="margin-top:4px">🌧️ '+e.challenge+'</div>':''}${e.next?'<div style="margin-top:4px">🎯 '+e.next+'</div>':''}</div>`).join('')||'<div class="empty">ยังไม่มีบันทึก</div>';
+}
+async function deleteReflection(date){
+  if(!confirm('ลบ reflection วันที่ '+date+'?'))return;
+  setStore('reflection_log',getStore('reflection_log',[]).filter(e=>e.date!==date));
+  renderReflections();
+  if(date===todayKey)['reflectWin','reflectChallenge','reflectNext'].forEach(id=>document.getElementById(id).value='');
+  await sendToSheets('delete',{sheet:'Reflections',date});
+}
+
+// ============ COPY FOR CLAUDE ============
+function buildClaudeText(){
+  const today=fmtDate(new Date());
+  let txt='=== ข้อมูลติดตามตนเอง ผอ.นิติพงษ์ ===\n';
+  txt+='วันที่สร้าง: '+thaiDate(new Date())+'\n\n';
+  // research progress
+  let totItems=0,totDone=0;
+  PHASES.forEach(p=>{const t=getStore('phase_tasks_'+p.id,{});totItems+=p.tasks.length;totDone+=p.tasks.filter((_,i)=>t[i]).length;});
+  CHAPTERS.forEach(c=>{const s=getStore('chapter_'+c.id,{});totItems+=c.items.length;totDone+=c.items.filter((_,i)=>s[i]).length;});
+  txt+='--- งานวิจัย ---\n';
+  txt+='ความคืบหน้ารวม: '+(totItems?Math.round(totDone/totItems*100):0)+'%\n';
+  PHASES.forEach(p=>{const t=getStore('phase_tasks_'+p.id,{});const d=p.tasks.filter((_,i)=>t[i]).length;txt+=p.id+': '+d+'/'+p.tasks.length+' งาน\n';});
+  const rlog=getStore('research_log',[]);
+  const totMin=rlog.reduce((s,e)=>s+(e.minutes||0),0);
+  txt+='เวลาทำวิจัยรวม: '+(totMin/60).toFixed(1)+' ชม. ('+rlog.length+' วัน)\n';
+  txt+='Papers อ่านแล้ว: '+getStore('paper_log',[]).length+' เรื่อง\n\n';
+  // habits 7 วันล่าสุด
+  txt+='--- วินัย 7 วันล่าสุด ---\n';
+  let d=new Date();
+  for(let i=0;i<7;i++){
+    const k=fmtDate(d);const h=getStore('habits_'+k,{});
+    const done=ALL_HABITS.filter(x=>h[x.id]).length;
+    txt+=k+': '+done+'/'+ALL_HABITS.length+' ('+ALL_HABITS.filter(x=>h[x.id]).map(x=>x.name.replace(/[^ก-๙a-zA-Z]/g,'')).join(',')+')\n';
+    d.setDate(d.getDate()-1);
+  }
+  txt+='\n--- การวิ่ง ---\n';
+  const pw=getRunPhaseWeek();
+  txt+='Phase '+pw.phase+' · สัปดาห์ '+pw.week+'\n';
+  const runs=getStore('run_log',[]).slice(0,7);
+  runs.forEach(r=>{txt+=r.date+': '+r.distance+'กม. '+(r.pace||'')+' ['+r.type+'] ข้อเท้า:'+(r.ankle||'-')+'\n';});
+  txt+='\n--- สะท้อนผลล่าสุด ---\n';
+  const ref=getStore('reflection_log',[])[0];
+  if(ref){txt+='('+ref.date+')\n✨ '+(ref.win||'-')+'\n🌧️ '+(ref.challenge||'-')+'\n🎯 '+(ref.next||'-')+'\n';}
+  txt+='\nช่วยวิเคราะห์ความคืบหน้า + ให้คำแนะนำหน่อยครับ';
+  return txt;
+}
+function copyForClaude(){
+  const txt=buildClaudeText();
+  navigator.clipboard.writeText(txt).then(()=>{
+    alert('📋 คัดลอกข้อมูลแล้ว!\nนำไปวาง (paste) ในแชท Claude เพื่อให้วิเคราะห์ได้เลย');
+  }).catch(()=>{
+    // fallback
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');alert('📋 คัดลอกข้อมูลแล้ว! วางในแชท Claude ได้เลย');}catch(e){prompt('คัดลอกข้อความนี้:',txt);}
+    document.body.removeChild(ta);
+  });
+}
+function generateWeeklySummary(){
+  const txt=buildClaudeText();
+  const box=document.getElementById('weeklySummaryBox');
+  box.style.display='block';
+  box.textContent=txt;
+}
+
+// ============ EXPORT/IMPORT/RESET ============
+function exportData(){
+  const data={};
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith(PREFIX))data[k]=localStorage.getItem(k);}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='nitipong_backup_'+fmtDate(new Date())+'.json';a.click();
+}
+function importData(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{const data=JSON.parse(e.target.result);
+      for(const [k,v] of Object.entries(data))if(k.startsWith(PREFIX))localStorage.setItem(k,v);
+      alert('✓ นำเข้าข้อมูลสำเร็จ');location.reload();
+    }catch(err){alert('ไฟล์ไม่ถูกต้อง');}
+  };
+  reader.readAsText(file);
+}
+function resetData(){
+  if(!confirm('⚠️ ลบข้อมูลทั้งหมด? (แนะนำ export สำรองก่อน)'))return;
+  if(!confirm('ยืนยันอีกครั้ง — ข้อมูลจะหายถาวร'))return;
+  const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith(PREFIX))keys.push(k);}
+  keys.forEach(k=>localStorage.removeItem(k));
+  alert('ลบข้อมูลแล้ว');location.reload();
+}
+
+// ============ AGGREGATE STATS (home) ============
+function updateAllStats(){
+  updateResearchProgress();
+  // home habit score
+  const data=getStore('habits_'+todayKey,{});
+  const done=ALL_HABITS.filter(h=>data[h.id]).length;
+  const el=document.getElementById('homeHabitScore');if(el)el.textContent=done+'/'+ALL_HABITS.length;
+  const maxS=Math.max(0,...ALL_HABITS.map(h=>calcHabitStreak(h.id)));
+  const sl=document.getElementById('homeStreakLine');if(sl)sl.textContent='streak ยาวสุด: '+maxS+' วัน';
+  // run
+  const pw=getRunPhaseWeek();
+  const rp=document.getElementById('homeRunPhase');if(rp)rp.textContent=pw.phase;
+  const rw=document.getElementById('homeRunWeek');if(rw)rw.textContent='W'+pw.week;
+  // km this week
+  const runs=getStore('run_log',[]);
+  let weekKm=0;const wkAgo=new Date();wkAgo.setDate(wkAgo.getDate()-7);
+  runs.forEach(r=>{if(new Date(r.date)>=wkAgo)weekKm+=parseFloat(r.distance)||0;});
+  const rk=document.getElementById('homeRunKm');if(rk)rk.textContent=weekKm.toFixed(1)+' กม.';
+  // todo list (core habits ที่ยังไม่ทำ)
+  const undone=HABITS_CORE.filter(h=>!data[h.id]);
+  const tl=document.getElementById('homeTodoList');
+  if(tl)tl.innerHTML=undone.length?undone.map(h=>`<div class="row"><span class="k">${h.name}</span><span class="v">${h.time}</span></div>`).join(''):'<div style="color:var(--success);padding:8px 0">✓ ทำ core ครบแล้ววันนี้!</div>';
+}
+
+// ============ INIT ============
+function initApp(){
+  // date
+  document.getElementById('datePicker').value=todayKey;
+  document.getElementById('hDate').textContent=thaiDate(currentDate).split(' ').slice(0,1).join('');
+  document.getElementById('hDay').textContent=thaiDate(currentDate).replace('วัน','');
+  document.getElementById('dateNote').textContent='(วันนี้)';
+  // quote สุ่ม
+  document.getElementById('quoteText').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  // api url
+  document.getElementById('apiUrl').value=getApiUrl();
+  // current phase = phase ปัจจุบันตามเดือน
+  const ym=todayKey.slice(0,7);
+  const cur=PHASES.find(p=>ym>=p.start&&ym<=p.end);
+  if(cur)selectedPhase=cur.id;
+  // render ทุกส่วน
+  renderPhaseStepper();renderPhaseTasks();renderChapters();
+  renderVision();renderPomo();loadPomoCount();
+  loadHabitsForDate();loadResearchForDate();loadRunForDate();loadRehabForDate();loadReflectionForDate();
+  updateCountdown();updateAllStats();initSyncStatus();
+  // อัปเดต countdown ทุกนาที
+  setInterval(updateCountdown,60000);
+  // auto-pull วันนี้ถ้าเชื่อมต่อแล้ว
+  if(getApiUrl())setTimeout(()=>pullFromSheet(),800);
+}
+window.addEventListener('DOMContentLoaded',initApp);
 </script>
 </body>
 </html>

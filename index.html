@@ -454,7 +454,7 @@
           <div class="c6"><label class="flbl">เวลา (นาที)</label><input type="number" id="runMin" placeholder="0"></div>
           <div class="c6"><label class="flbl">Pace (นาที/กม.)</label><input type="text" id="runPace" placeholder="เช่น 5:30"></div>
           <div class="c6"><label class="flbl">ประเภท</label>
-            <select id="runType">
+            <select id="runType" onchange="onRunTypeChange()">
               <option value="Easy">Easy</option>
               <option value="Interval">Interval</option>
               <option value="Tempo">Tempo</option>
@@ -462,6 +462,7 @@
               <option value="Fartlek">Fartlek</option>
               <option value="Long">Long Run</option>
               <option value="Cross">Cross-training</option>
+              <option value="Rest">🛑 พัก/หยุดวิ่งวันนี้</option>
             </select>
           </div>
         </div>
@@ -568,7 +569,11 @@
     <div class="grid">
       <div class="card c7">
         <div class="lbl">🔗 เชื่อมต่อ Google Sheet</div>
-        <div style="font-size:13px;color:var(--gray);margin-bottom:12px">วาง URL ของ Apps Script (Web App) เพื่อซิงค์ข้อมูลขึ้น Google Sheet</div>
+        <div style="background:#fff4e6;border-left:3px solid var(--tiger);padding:12px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:1.6">
+          <strong>⚠️ สำคัญ:</strong> ต้องตั้งค่า URL นี้<strong>แยกทุกเครื่อง</strong> (Mac + มือถือ)<br>
+          เพราะข้อมูลตั้งค่าเก็บแยกในแต่ละเครื่อง ถ้ามือถือยังไม่ตั้ง = จะไม่เห็นข้อมูลจาก Mac<br>
+          <strong>วิธีใช้ข้ามเครื่อง:</strong> ตั้ง URL เดียวกันทุกเครื่อง → กด "ดึงทั้งหมดจาก Sheet"
+        </div>
         <label class="flbl">Apps Script URL</label>
         <input type="url" id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec">
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -733,22 +738,33 @@ function setSyncStatus(state,msg){
   txt.textContent=msg;
 }
 function initSyncStatus(){
-  if(getApiUrl()){ setSyncStatus('on','เชื่อมต่อ Google Sheet แล้ว'); }
-  else { setSyncStatus('','ยังไม่ได้เชื่อมต่อ Google Sheet'); }
+  if(getApiUrl()){
+    const last=getStore('last_sync','');
+    setSyncStatus('on','✓ เครื่องนี้เชื่อมต่อแล้ว'+(last?' · ซิงค์ล่าสุด '+last:''));
+  } else {
+    setSyncStatus('err','⚠️ เครื่องนี้ยังไม่เชื่อมต่อ Sheet — ไปแท็บ "ตั้งค่า" วาง URL (ต้องตั้งแยกทุกเครื่อง!)');
+  }
 }
 
 // POST (write) ผ่าน fetch no-cors
 async function sendToSheets(type,payload){
   const url=getApiUrl();
-  if(!url) return false;
+  if(!url){
+    // เครื่องนี้ยังไม่ตั้ง URL — เตือนให้ชัด (สาเหตุหลักที่ข้ามเครื่องไม่ได้)
+    setSyncStatus('err','⚠️ เครื่องนี้ยังไม่เชื่อมต่อ — ไปตั้งค่า URL ก่อน (ข้อมูลเก็บในเครื่องเท่านั้น)');
+    return false;
+  }
   setSyncStatus('sync','กำลังซิงค์...');
   try{
     await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
       body:JSON.stringify({type,payload})});
-    setSyncStatus('on','ซิงค์แล้ว · '+new Date().toLocaleTimeString('th-TH'));
+    // หมายเหตุ: no-cors อ่าน response ไม่ได้ จึงถือว่าส่งสำเร็จถ้าไม่ throw
+    const t=new Date().toLocaleTimeString('th-TH');
+    setSyncStatus('on','✓ ส่งขึ้น Sheet แล้ว · '+t+' (เปิด Sheet ตรวจได้)');
+    setStore('last_sync',t);
     return true;
   }catch(e){
-    setSyncStatus('err','ซิงค์ไม่สำเร็จ'); return false;
+    setSyncStatus('err','✗ ส่งไม่สำเร็จ — ตรวจเน็ต/URL หรือเปิดผ่าน GitHub Pages'); return false;
   }
 }
 
@@ -1097,6 +1113,18 @@ function loadRunForDate(){
   document.getElementById('runNote').value=r?(r.note||''):'';
   renderRunHistory();
 }
+function onRunTypeChange(){
+  const type=document.getElementById('runType').value;
+  const noteEl=document.getElementById('runNote');
+  const distEl=document.getElementById('runDist');
+  if(type==='Rest'){
+    noteEl.placeholder='เหตุผลที่พัก (เช่น ข้อเท้าเจ็บ / งานยุ่ง / ฝนตก)';
+    distEl.placeholder='0 (ไม่ต้องใส่)';
+  } else {
+    noteEl.placeholder='ความรู้สึก / สภาพอากาศ';
+    distEl.placeholder='0';
+  }
+}
 async function logRun(){
   const distance=parseFloat(document.getElementById('runDist').value)||0;
   const minutes=parseInt(document.getElementById('runMin').value)||0;
@@ -1104,7 +1132,12 @@ async function logRun(){
   const type=document.getElementById('runType').value;
   const ankle=document.getElementById('ankleStatus').value;
   const note=document.getElementById('runNote').value.trim();
-  if(!distance&&type!=='Cross'){alert('กรุณาใส่ระยะทาง');return;}
+  // ประเภท "พัก" ไม่ต้องมีระยะทาง แต่ควรมีเหตุผล
+  if(type==='Rest'){
+    if(!note){alert('กรุณาใส่เหตุผลที่พัก (เช่น ข้อเท้าเจ็บ / งานยุ่ง / ฝนตก)');return;}
+  } else if(!distance&&type!=='Cross'){
+    alert('กรุณาใส่ระยะทาง');return;
+  }
   const log=getStore('run_log',[]).filter(e=>e.date!==todayKey);
   log.unshift({date:todayKey,distance,minutes,pace,type,ankle,note});
   setStore('run_log',log);
@@ -1125,6 +1158,11 @@ function renderRunHistory(){
   const box=document.getElementById('runHistory');
   box.innerHTML=log.slice(0,6).map(e=>{
     const ankleIc={'ดี':'😊','ตึงเล็กน้อย':'😐','เจ็บนิดหน่อย':'😟','เจ็บ-บวม':'🛑'}[e.ankle]||'';
+    if(e.type==='Rest'){
+      return `<div class="log" style="border-left-color:var(--gray-light)"><button class="del" onclick="deleteRun('${e.date}')">🗑</button>
+        <div class="d">${e.date} · 🛑 วันพัก</div>
+        <div style="color:var(--gray)">เหตุผล: ${e.note||'-'}</div></div>`;
+    }
     return `<div class="log"><button class="del" onclick="deleteRun('${e.date}')">🗑</button>
       <div class="d">${e.date} · ${e.type||'Run'} ${ankleIc}</div>
       <strong>${e.distance} กม.</strong> ${e.pace?'· '+e.pace+' pace':''} ${e.minutes?'· '+e.minutes+' นาที':''}
